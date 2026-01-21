@@ -1,19 +1,54 @@
 <!DOCTYPE html>
-<html>
-    <head>
-        <title>Galaxy_bbs</title>
-        <style>
-            .body {
-                background-color: aquamarine;
-            }
-        </style>
-    </head>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>Reddit Clone</title>
+  <link rel="stylesheet" href="style.css">
+</head>
+<body>
 
-    <body>
-        <h1>Welcome to Galaxy</h1>
-        <p> Let's go to kabukicho
+<header class="header">
+  <h1>Reddit Clone</h1>
+  <button class="new-post">New Post</button>
+</header>
 
-            hello!
-        </p>
-    </body>
+<main class="feed">
+
+  <div class="post">
+    <div class="vote">
+      <button onclick="upvote(this)">▲</button>
+      <div class="count">12</div>
+      <button onclick="downvote(this)">▼</button>
+    </div>
+
+    <div class="content">
+      <h3>Java Servlet Question</h3>
+      <p>I don't understand the difference between Servlet and JSP.</p>
+      <div class="meta">
+        Posted by u/Harry · 2 hours ago · 💬 15 comments
+      </div>
+    </div>
+  </div>
+
+  <div class="post">
+    <div class="vote">
+      <button onclick="upvote(this)">▲</button>
+      <div class="count">5</div>
+      <button onclick="downvote(this)">▼</button>
+    </div>
+
+    <div class="content">
+      <h3>How to learn Java faster?</h3>
+      <p>Any good roadmap for beginners?</p>
+      <div class="meta">
+        Posted by u/Mike · 1 day ago · 💬 4 comments
+      </div>
+    </div>
+  </div>
+
+</main>
+
+<script src="script.js"></script>
+</body>
 </html>
+>

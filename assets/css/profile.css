@@ -1,0 +1,103 @@
+.profile-container {
+    max-width: 800px;
+    margin: 20px auto;
+    padding: 0 20px;
+}
+
+.profile-header {
+    margin-bottom: 24px;
+}
+
+.profile-username {
+    font-size: 24px;
+    font-weight: 700;
+    margin: 0 0 16px;
+    color: var(--text-primary);
+}
+
+.profile-tabs {
+    display: flex;
+    gap: 0;
+    border-bottom: 1px solid var(--border-color);
+}
+
+.profile-tab {
+    padding: 12px 20px;
+    font-size: 14px;
+    font-weight: 700;
+    color: var(--text-secondary);
+    text-decoration: none;
+    border-bottom: 2px solid transparent;
+    margin-bottom: -1px;
+    transition: color 0.2s, border-color 0.2s;
+}
+
+.profile-tab:hover {
+    color: var(--text-primary);
+}
+
+.profile-tab.active {
+    color: var(--accent-color);
+    border-bottom-color: var(--accent-color);
+}
+
+.profile-content {
+    min-height: 200px;
+}
+
+.profile-empty {
+    padding: 40px 20px;
+    text-align: center;
+    color: var(--text-secondary);
+    font-size: 14px;
+}
+
+.profile-posts .post-card {
+    margin-bottom: 10px;
+}
+
+.profile-posts .post-media-img,
+.profile-posts .post-media-video {
+    max-width: 100%;
+    max-height: 400px;
+    border-radius: 8px;
+    margin-top: 8px;
+}
+
+.comment-card {
+    background: var(--glass-bg);
+    backdrop-filter: blur(var(--glass-blur));
+    -webkit-backdrop-filter: blur(var(--glass-blur));
+    border: 1px solid var(--glass-border);
+    border-radius: 8px;
+    padding: 14px 16px;
+    margin-bottom: 10px;
+    box-shadow: 0 1px 4px var(--glass-shadow);
+}
+
+.comment-card-meta {
+    margin-bottom: 8px;
+}
+
+.comment-post-link {
+    font-size: 13px;
+    font-weight: 600;
+    color: var(--accent-color);
+    text-decoration: none;
+}
+
+.comment-post-link:hover {
+    text-decoration: underline;
+}
+
+.comment-card-body {
+    font-size: 14px;
+    line-height: 1.5;
+    color: var(--text-primary);
+    margin-bottom: 8px;
+}
+
+.comment-card-time {
+    font-size: 12px;
+    color: var(--text-secondary);
+}

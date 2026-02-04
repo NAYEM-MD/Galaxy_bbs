@@ -1,0 +1,294 @@
+/**
+ * Global Theme System — Light / Dark with Glassmorphism
+ * Reddit-inspired dark mode, subtle frosted-glass UI.
+ * Use data-theme="dark" on <html> for dark mode.
+ */
+
+/* ========== LIGHT THEME (default) ========== */
+:root {
+    /* Base — no pure white; silver/muted grays */
+    --bg-body: #e8eaed;
+    --bg-card: rgba(255, 255, 255, 0.92);
+    --bg-card-solid: #f5f6f7;
+    --bg-header: rgba(255, 255, 255, 0.88);
+    --bg-input: rgba(246, 247, 248, 0.95);
+    --bg-hover: rgba(237, 239, 241, 0.9);
+    --bg-modal: rgba(255, 255, 255, 0.94);
+
+    --text-primary: #1c1c1c;
+    --text-secondary: #6b6e72;
+    --text-muted: #878a8c;
+
+    --border-color: rgba(237, 239, 241, 0.9);
+    --border-color-strong: #ccc;
+
+    --accent-color: #0079d3;
+    --accent-hover: #006ebd;
+    --icon-color: #1c1c1c;
+
+    --vote-bg: #f8f9fa;
+    --shadow-color: rgba(0, 0, 0, 0.08);
+    --shadow-strong: rgba(0, 0, 0, 0.12);
+
+    /* Glassmorphism — light */
+    --glass-bg: rgba(255, 255, 255, 0.72);
+    --glass-border: rgba(255, 255, 255, 0.5);
+    --glass-blur: 12px;
+    --glass-shadow: rgba(0, 0, 0, 0.06);
+
+    /* Poll */
+    --poll-bg: #d1ecf1;
+    --poll-text: #0c5460;
+    --poll-option-bg: rgba(255, 255, 255, 0.9);
+    --poll-progress-bg: #bee5eb;
+}
+
+/* ========== DARK THEME ========== */
+[data-theme="dark"] {
+    /* Deep dark gray base (not pure black) */
+    --bg-body: #0f0f0f;
+    --bg-card: rgba(26, 26, 27, 0.85);
+    --bg-card-solid: #1a1a1b;
+    --bg-header: rgba(26, 26, 27, 0.82);
+    --bg-input: rgba(39, 39, 41, 0.9);
+    --bg-hover: rgba(45, 45, 46, 0.9);
+    --bg-modal: rgba(30, 30, 31, 0.9);
+
+    --text-primary: #e8e8e8;
+    --text-secondary: #a0a0a0;
+    --text-muted: #818384;
+
+    --border-color: rgba(52, 53, 54, 0.8);
+    --border-color-strong: #3d3d3f;
+
+    --accent-color: #4fbcff;
+    --accent-hover: #7ac8ff;
+    --icon-color: #d7dadc;
+
+    --vote-bg: #151516;
+    --shadow-color: rgba(0, 0, 0, 0.35);
+    --shadow-strong: rgba(0, 0, 0, 0.5);
+
+    /* Glassmorphism — dark */
+    --glass-bg: rgba(26, 26, 27, 0.75);
+    --glass-border: rgba(52, 53, 54, 0.6);
+    --glass-blur: 14px;
+    --glass-shadow: rgba(0, 0, 0, 0.3);
+
+    /* Poll (dark) */
+    --poll-bg: rgba(26, 26, 27, 0.9);
+    --poll-text: #d7dadc;
+    --poll-option-bg: rgba(39, 39, 41, 0.9);
+    --poll-progress-bg: #3a3a3c;
+}
+
+/* ========== GLASS UTILITY ========== */
+.glass {
+    background: var(--glass-bg);
+    backdrop-filter: blur(var(--glass-blur));
+    -webkit-backdrop-filter: blur(var(--glass-blur));
+    border: 1px solid var(--glass-border);
+    box-shadow: 0 2px 12px var(--glass-shadow);
+}
+
+.glass-strong {
+    background: var(--glass-bg);
+    backdrop-filter: blur(20px);
+    -webkit-backdrop-filter: blur(20px);
+    border: 1px solid var(--glass-border);
+    box-shadow: 0 4px 24px var(--glass-shadow);
+}
+
+/* ========== BASE — BODY & TYPOGRAPHY ========== */
+body {
+    font-family: "IBM Plex Sans", -apple-system, BlinkMacSystemFont, sans-serif;
+    background-color: var(--bg-body);
+    color: var(--text-primary);
+    margin: 0;
+    -webkit-font-smoothing: antialiased;
+}
+
+/* ========== BASE — CARDS ========== */
+.card-base {
+    background: var(--bg-card);
+    border: 1px solid var(--border-color);
+    border-radius: 8px;
+    box-shadow: 0 1px 3px var(--shadow-color);
+}
+
+[data-theme="dark"] .card-base {
+    border-color: var(--border-color);
+    box-shadow: 0 2px 8px var(--shadow-color);
+}
+
+/* ========== BASE — BUTTONS ========== */
+.btn-base {
+    font-family: inherit;
+    font-weight: 700;
+    border-radius: 20px;
+    cursor: pointer;
+    transition: background-color 0.2s, border-color 0.2s, color 0.2s;
+}
+
+.btn-primary-base {
+    background: var(--accent-color);
+    color: #fff;
+    border: none;
+}
+
+.btn-primary-base:hover {
+    background: var(--accent-hover);
+}
+
+.btn-secondary-base {
+    background: var(--bg-card);
+    color: var(--accent-color);
+    border: 1px solid var(--accent-color);
+}
+
+.btn-secondary-base:hover {
+    background: var(--bg-input);
+}
+
+[data-theme="dark"] .btn-secondary-base {
+    color: var(--text-secondary);
+    border-color: var(--border-color-strong);
+}
+
+[data-theme="dark"] .btn-secondary-base:hover {
+    background: var(--bg-hover);
+}
+
+/* ========== BASE — INPUTS ========== */
+.input-base {
+    background-color: var(--bg-input);
+    border: 1px solid var(--border-color);
+    color: var(--text-primary);
+    font-family: inherit;
+    transition: border-color 0.2s, background-color 0.2s;
+}
+
+.input-base::placeholder {
+    color: var(--text-muted);
+}
+
+.input-base:focus {
+    outline: none;
+    border-color: var(--accent-color);
+    background-color: var(--bg-card);
+}
+
+[data-theme="dark"] .input-base:focus {
+    border-color: var(--border-color-strong);
+    background-color: var(--bg-hover);
+}
+
+/* ========== BASE — NAVBAR (glass-ready) ========== */
+.navbar-glass {
+    background: var(--glass-bg);
+    backdrop-filter: blur(var(--glass-blur));
+    -webkit-backdrop-filter: blur(var(--glass-blur));
+    border-bottom: 1px solid var(--glass-border);
+    box-shadow: 0 1px 0 var(--glass-shadow);
+}
+
+/* ========== BASE — MODALS & DROPDOWNS (glass-ready) ========== */
+.modal-glass,
+.dropdown-glass {
+    background: var(--glass-bg);
+    backdrop-filter: blur(var(--glass-blur));
+    -webkit-backdrop-filter: blur(var(--glass-blur));
+    border: 1px solid var(--glass-border);
+    box-shadow: 0 8px 32px var(--glass-shadow);
+}
+
+/* ========== BASE — SIDEBAR (glass-ready) ========== */
+.sidebar-glass {
+    background: var(--glass-bg);
+    backdrop-filter: blur(var(--glass-blur));
+    -webkit-backdrop-filter: blur(var(--glass-blur));
+    border: 1px solid var(--glass-border);
+    box-shadow: 0 2px 12px var(--glass-shadow);
+}
+
+/* ========== DARK MODE — Content areas (no white) ========== */
+[data-theme="dark"] .post-card,
+[data-theme="dark"] .create-post-bar {
+    background: rgba(30, 30, 30, 0.75);
+    backdrop-filter: blur(10px);
+    -webkit-backdrop-filter: blur(10px);
+    border: 1px solid rgba(255, 255, 255, 0.06);
+    box-shadow: 0 2px 12px rgba(0, 0, 0, 0.3);
+}
+
+[data-theme="dark"] .post-content {
+    background: transparent;
+    color: var(--text-primary);
+}
+
+[data-theme="dark"] .post-form-card,
+[data-theme="dark"] .create-post-container {
+    background: rgba(26, 26, 26, 0.85);
+    backdrop-filter: blur(10px);
+    -webkit-backdrop-filter: blur(10px);
+    border: 1px solid rgba(255, 255, 255, 0.06);
+    box-shadow: 0 2px 12px rgba(0, 0, 0, 0.3);
+}
+
+[data-theme="dark"] .create-post-container {
+    border: none;
+    box-shadow: none;
+}
+
+[data-theme="dark"] .create-post-bar input,
+[data-theme="dark"] .community-select,
+[data-theme="dark"] .title-input-wrapper input,
+[data-theme="dark"] .body-editor-wrapper textarea,
+[data-theme="dark"] .comment-textarea {
+    background-color: rgba(39, 39, 41, 0.9);
+    border: 1px solid rgba(255, 255, 255, 0.06);
+    color: var(--text-primary);
+}
+
+[data-theme="dark"] .body-editor-wrapper,
+[data-theme="dark"] .comment-input-area {
+    border: 1px solid rgba(255, 255, 255, 0.06);
+    background: transparent;
+}
+
+[data-theme="dark"] .editor-toolbar,
+[data-theme="dark"] .comment-actions {
+    background-color: rgba(39, 39, 41, 0.6);
+    border-color: rgba(255, 255, 255, 0.06);
+}
+
+[data-theme="dark"] .detail-left {
+    background: rgba(30, 30, 30, 0.75);
+    backdrop-filter: blur(10px);
+    -webkit-backdrop-filter: blur(10px);
+    border: 1px solid rgba(255, 255, 255, 0.06);
+}
+
+[data-theme="dark"] .detail-post-card,
+[data-theme="dark"] .detail-content,
+[data-theme="dark"] .comment-section {
+    background: rgba(26, 26, 26, 0.85);
+    border-color: rgba(255, 255, 255, 0.06);
+    color: var(--text-primary);
+}
+
+[data-theme="dark"] .post-header-bar {
+    background: rgba(30, 30, 30, 0.75);
+    border-bottom-color: rgba(255, 255, 255, 0.06);
+}
+
+[data-theme="dark"] .sidebar-card,
+[data-theme="dark"] .card-header,
+[data-theme="dark"] .card-content {
+    background: rgba(30, 30, 30, 0.75);
+    border-color: rgba(255, 255, 255, 0.06);
+}
+
+[data-theme="dark"] .vote-column {
+    background-color: rgba(21, 21, 22, 0.95);
+}

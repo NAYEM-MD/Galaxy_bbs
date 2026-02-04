@@ -1,0 +1,388 @@
+.create-post-container {
+    max-width: 740px;
+    margin: 20px auto;
+    padding: 0 20px;
+}
+
+[data-theme="dark"] .create-post-container {
+    background-color: var(--bg-body);
+}
+
+.create-post-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 15px;
+    border-bottom: 1px solid var(--border-color);
+    padding-bottom: 10px;
+}
+
+.create-post-header h2 {
+    font-size: 18px;
+    font-weight: 500;
+    margin: 0;
+    color: var(--text-primary);
+}
+
+.drafts-btn {
+    color: var(--accent-color);
+    font-weight: 700;
+    font-size: 12px;
+    cursor: pointer;
+    text-transform: uppercase;
+}
+
+[data-theme="dark"] .drafts-btn {
+    color: var(--text-secondary);
+}
+
+.community-select-wrapper {
+    margin-bottom: 10px;
+}
+
+.community-select {
+    padding: 8px;
+    width: 300px;
+    border-radius: 4px;
+    border: 1px solid var(--border-color);
+    background-color: var(--bg-card);
+    color: var(--text-primary);
+}
+
+.post-form-card {
+    background: var(--glass-bg);
+    backdrop-filter: blur(var(--glass-blur));
+    -webkit-backdrop-filter: blur(var(--glass-blur));
+    border: 1px solid var(--glass-border);
+    border-radius: 8px;
+    box-shadow: 0 2px 12px var(--glass-shadow);
+}
+
+.post-tabs {
+    display: flex;
+    border-bottom: 1px solid var(--border-color);
+}
+
+.tab {
+    flex: 1;
+    text-align: center;
+    padding: 15px 0;
+    font-size: 14px;
+    font-weight: 700;
+    color: var(--text-secondary);
+    cursor: pointer;
+    border-bottom: 2px solid transparent;
+}
+
+.tab:hover {
+    background-color: var(--bg-input);
+}
+
+.tab.active {
+    color: var(--accent-color);
+    border-bottom-color: var(--accent-color);
+    background-color: var(--bg-input);
+}
+
+[data-theme="dark"] .tab.active {
+    color: var(--text-primary);
+    border-bottom-color: var(--text-secondary);
+}
+
+.post-form {
+    padding: 16px;
+}
+
+.title-input-wrapper {
+    position: relative;
+    margin-bottom: 10px;
+}
+
+.title-input-wrapper input {
+    width: 100%;
+    padding: 10px;
+    padding-right: 50px;
+    border: 1px solid var(--border-color);
+    border-radius: 4px;
+    font-size: 14px;
+    box-sizing: border-box;
+    background-color: var(--bg-card);
+    color: var(--text-primary);
+}
+
+.title-input-wrapper input:focus {
+    border-color: var(--text-primary);
+    outline: none;
+}
+
+[data-theme="dark"] .title-input-wrapper input {
+    background-color: var(--bg-input);
+}
+
+[data-theme="dark"] .title-input-wrapper input:focus {
+    border-color: var(--border-color-strong);
+    background-color: var(--bg-hover);
+}
+
+.char-count {
+    position: absolute;
+    right: 10px;
+    top: 12px;
+    font-size: 10px;
+    color: var(--text-secondary);
+    font-weight: 700;
+}
+
+.body-editor-wrapper {
+    border: 1px solid var(--border-color);
+    border-radius: 4px;
+    min-height: 200px;
+    display: flex;
+    flex-direction: column;
+}
+
+.editor-toolbar {
+    background-color: var(--bg-input);
+    padding: 8px;
+    border-bottom: 1px solid var(--border-color);
+    display: flex;
+    gap: 5px;
+}
+
+.toolbar-btn {
+    background: none;
+    border: none;
+    cursor: pointer;
+    font-weight: bold;
+    padding: 4px 8px;
+    border-radius: 4px;
+    color: var(--text-secondary);
+}
+
+.toolbar-btn:hover {
+    background-color: var(--bg-hover);
+    color: var(--text-primary);
+}
+
+.body-editor-wrapper textarea {
+    flex-grow: 1;
+    border: none;
+    padding: 10px;
+    font-family: inherit;
+    resize: vertical;
+    min-height: 150px;
+    background-color: var(--bg-card);
+    color: var(--text-primary);
+}
+
+.body-editor-wrapper textarea:focus {
+    outline: none;
+}
+
+/* Create post: poll section & media remove – dark */
+[data-theme="dark"] #pollFields {
+    border-color: var(--border-color) !important;
+    background-color: var(--bg-input) !important;
+}
+
+[data-theme="dark"] #pollFields textarea,
+[data-theme="dark"] #pollFields input[type="text"] {
+    border-color: var(--border-color) !important;
+    background-color: var(--bg-card) !important;
+    color: var(--text-primary) !important;
+}
+
+[data-theme="dark"] #addPollOption {
+    background-color: var(--bg-input) !important;
+    border-color: var(--border-color-strong) !important;
+    color: var(--text-secondary) !important;
+}
+
+[data-theme="dark"] #addPollOption:hover {
+    background-color: var(--bg-hover) !important;
+}
+
+[data-theme="dark"] #pollFields label {
+    color: var(--text-primary) !important;
+}
+
+[data-theme="dark"] #removeMedia {
+    color: var(--text-secondary) !important;
+}
+
+[data-theme="dark"] #removeMedia:hover {
+    color: var(--text-primary) !important;
+}
+
+[data-theme="dark"] #pollFields .delete-option {
+    border-color: var(--border-color) !important;
+    color: var(--text-secondary) !important;
+}
+
+[data-theme="dark"] #pollFields .delete-option:hover {
+    background-color: var(--bg-hover) !important;
+    color: var(--text-primary) !important;
+}
+
+.form-actions {
+    display: flex;
+    justify-content: flex-end;
+    margin-top: 16px;
+    gap: 10px;
+}
+
+.btn-secondary {
+    padding: 8px 16px;
+    border: 1px solid var(--accent-color);
+    background: var(--bg-card);
+    color: var(--accent-color);
+    border-radius: 20px;
+    font-weight: 700;
+    cursor: pointer;
+}
+
+.btn-secondary:hover {
+    background: var(--bg-input);
+}
+
+[data-theme="dark"] .btn-secondary {
+    border-color: var(--border-color-strong);
+    color: var(--text-secondary);
+}
+
+[data-theme="dark"] .btn-secondary:hover {
+    background: var(--bg-hover);
+}
+
+.btn-primary {
+    padding: 8px 16px;
+    border: none;
+    background: #0079d3;
+    color: #fff;
+    border-radius: 20px;
+    font-weight: 700;
+    cursor: pointer;
+}
+
+.btn-primary:hover {
+    background: #006ebd;
+}
+
+[data-theme="dark"] .btn-primary {
+    background: var(--bg-hover);
+    color: var(--text-primary);
+}
+
+[data-theme="dark"] .btn-primary:hover {
+    background: var(--border-color-strong);
+}
+
+/* Detail Page specific */
+.post-detail-container {
+    max-width: 960px;
+    margin: 20px auto;
+    display: flex;
+    gap: 24px;
+    padding: 0 20px;
+}
+
+.detail-left {
+    flex: 1;
+    background: var(--glass-bg);
+    backdrop-filter: blur(var(--glass-blur));
+    -webkit-backdrop-filter: blur(var(--glass-blur));
+    border-radius: 8px;
+    border: 1px solid var(--glass-border);
+    box-shadow: 0 2px 8px var(--glass-shadow);
+    min-width: 0;
+}
+
+.detail-right {
+    width: 312px;
+    display: none;
+}
+
+@media (min-width: 960px) {
+    .detail-right {
+        display: block;
+    }
+}
+
+.post-header-bar {
+    background: var(--bg-card);
+    color: var(--text-primary);
+    padding: 10px 20px;
+    display: flex;
+    justify-content: space-between;
+    font-size: 12px;
+    border-bottom: 1px solid var(--border-color);
+}
+
+.detail-post-card {
+    display: flex;
+    background: var(--bg-card);
+}
+
+.detail-content {
+    padding: 10px 20px;
+    width: 100%;
+}
+
+.comment-section {
+    padding: 24px 40px;
+    background: var(--bg-card);
+    border-top: 1px solid var(--border-color);
+}
+
+.comment-input-area {
+    border: 1px solid var(--border-color-strong);
+    border-radius: 4px;
+    margin-bottom: 30px;
+    padding: 12px 12px 0;
+}
+
+.comment-textarea {
+    width: 100%;
+    border: 1px solid rgba(0, 0, 0, 0.1);
+    border-radius: 4px;
+    margin-bottom: 10px;
+    padding: 10px;
+    min-height: 100px;
+    box-sizing: border-box;
+    font-family: inherit;
+    background-color: rgba(240, 242, 245, 0.95);
+    color: var(--text-primary);
+}
+
+.comment-actions {
+    background: rgba(235, 237, 240, 0.95);
+    padding: 5px 10px;
+    text-align: right;
+}
+
+.comment {
+    margin-bottom: 20px;
+}
+
+.comment-header {
+    font-size: 12px;
+    margin-bottom: 5px;
+    display: flex;
+    align-items: center;
+}
+
+.comment-author {
+    font-weight: 700;
+    color: var(--text-primary);
+    margin-right: 5px;
+}
+
+.comment-time {
+    color: var(--text-secondary);
+}
+
+.comment-body {
+    font-size: 14px;
+    line-height: 1.5;
+    color: var(--text-primary);
+}

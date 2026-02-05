@@ -4,8 +4,11 @@ REM Compile Galaxy BBS Java sources into WEB-INF\classes
 REM Run this from the project root (e.g. c:\ii\Galaxy_bbs)
 REM ============================================================
 
-set PROJECT_ROOT=%~dp0
-if not "%PROJECT_ROOT:~-1%"=="" set PROJECT_ROOT=%PROJECT_ROOT:~0,-1%
+setlocal
+
+set "PROJECT_ROOT=%~dp0"
+REM %~dp0 ends with a backslash; remove it for consistency
+if "%PROJECT_ROOT:~-1%"=="\" set "PROJECT_ROOT=%PROJECT_ROOT:~0,-1%"
 cd /d "%PROJECT_ROOT%"
 
 REM Set Tomcat home - edit this if Tomcat is elsewhere
@@ -24,19 +27,26 @@ set CP=%LIB%\jakarta.activation-2.0.1.jar;%LIB%\jakarta.mail-2.0.1.jar;%LIB%\ojd
 if not exist "%OUT%" mkdir "%OUT%"
 
 echo Compiling Java sources to WEB-INF\classes ...
-javac -encoding UTF-8 -d "%OUT%" -cp "%CP%" -sourcepath "%SRC%" ^
-  "%SRC%\controller\*.java" ^
-  "%SRC%\dao\*.java" ^
-  "%SRC%\filter\*.java" ^
-  "%SRC%\model\*.java" ^
-  "%SRC%\test\*.java" ^
-  "%SRC%\util\*.java"
+REM javac does NOT expand *.java globs on Windows. Build an @argfile of sources.
+set "SRC_LIST=%TEMP%\galaxy_bbs_sources_%RANDOM%%RANDOM%.txt"
+if exist "%SRC_LIST%" del /q "%SRC_LIST%"
 
-if %ERRORLEVEL% equ 0 (
+for /r "%SRC%" %%F in (*.java) do (
+  echo %%F>>"%SRC_LIST%"
+)
+
+javac -encoding UTF-8 -d "%OUT%" -cp "%CP%" -sourcepath "%SRC%" @"%SRC_LIST%"
+set "JAVAC_EXIT=%ERRORLEVEL%"
+
+del /q "%SRC_LIST%" >nul 2>&1
+
+if %JAVAC_EXIT% equ 0 (
     echo.
     echo Done. WEB-INF\classes has been built.
 ) else (
     echo.
     echo Compilation failed. Check errors above.
-    exit /b 1
+    exit /b %JAVAC_EXIT%
 )
+
+endlocal

@@ -2,6 +2,16 @@
 REM ============================================================
 REM Compile Galaxy BBS Java sources into WEB-INF\classes
 REM Run this from the project root (e.g. c:\ii\Galaxy_bbs)
+REM
+REM Optional: DB connectivity test (Oracle)
+REM   compile_classes.bat dbtest [DB_URL] [DB_USER] [DB_PASSWORD]
+REM Example:
+REM   compile_classes.bat dbtest "jdbc:oracle:thin:@//192.168.1.50:1521/orclpdb1" info pro
+REM Or set env vars before running:
+REM   set DB_URL=...
+REM   set DB_USER=info
+REM   set DB_PASSWORD=pro
+REM   compile_classes.bat dbtest
 REM ============================================================
 
 setlocal
@@ -47,6 +57,54 @@ if %JAVAC_EXIT% equ 0 (
     echo.
     echo Compilation failed. Check errors above.
     exit /b %JAVAC_EXIT%
+)
+
+REM Optional Oracle DB connection test
+if /i "%~1"=="dbtest" (
+    if not "%~2"=="" set "DB_URL=%~2"
+    if not "%~3"=="" set "DB_USER=%~3"
+    if not "%~4"=="" set "DB_PASSWORD=%~4"
+
+    echo.
+    echo Checking Oracle DB connection via util.DBUtil ...
+    set "TMP_DIR=%TEMP%\galaxy_bbs_dbtest_%RANDOM%%RANDOM%"
+    if not exist "%TMP_DIR%" mkdir "%TMP_DIR%"
+
+    set "PING_SRC=%TMP_DIR%\DbPing.java"
+    >"%PING_SRC%" (
+        echo import java.sql.Connection;
+        echo import util.DBUtil;
+        echo public class DbPing ^{
+        echo   public static void main(String[] args) ^{
+        echo     try ^(Connection c = DBUtil.getConnection^(^)^) ^{
+        echo       if ^(c == null^) ^{ System.err.println^("DB connection is null."^); System.exit^(2^); ^}
+        echo       System.out.println^("DB connected OK: " + c.getMetaData^(^).getURL^(^)^);
+        echo     ^} catch ^(Exception e^) ^{
+        echo       System.err.println^("DB connect FAILED: " + e.getMessage^(^)^);
+        echo       e.printStackTrace^(^);
+        echo       System.exit^(1^);
+        echo     ^}
+        echo   ^}
+        echo ^}
+    )
+
+    javac -encoding UTF-8 -d "%TMP_DIR%" -cp "%OUT%;%CP%" "%PING_SRC%"
+    if not %ERRORLEVEL% equ 0 (
+        echo DB test compile failed.
+        rd /s /q "%TMP_DIR%" >nul 2>&1
+        exit /b 1
+    )
+
+    java -cp "%TMP_DIR%;%OUT%;%CP%" DbPing
+    set "DBTEST_EXIT=%ERRORLEVEL%"
+
+    rd /s /q "%TMP_DIR%" >nul 2>&1
+
+    if not %DBTEST_EXIT% equ 0 (
+        echo.
+        echo DB connection test failed with exit code %DBTEST_EXIT%.
+        exit /b %DBTEST_EXIT%
+    )
 )
 
 endlocal

@@ -2,6 +2,7 @@ package dao;
 
 import model.User;
 import util.DBUtil;
+import util.PasswordUtil;
 
 import java.sql.Connection;
 import java.sql.PreparedStatement;
@@ -89,7 +90,7 @@ public class UserDAO {
              PreparedStatement pstmt = conn.prepareStatement(sql)) {
             
             pstmt.setString(1, user.getUsername());
-            pstmt.setString(2, user.getPassword());
+            pstmt.setString(2, PasswordUtil.hashPassword(user.getPassword()));
             pstmt.setString(3, user.getEmail());
             pstmt.executeUpdate();
             
@@ -103,7 +104,19 @@ public class UserDAO {
         User user = findById(userId);
         if (user == null || user.getPassword() == null) return false;
         String input = (password != null) ? password.trim() : "";
-        return user.getPassword().equals(input);
+        
+        // Check hashed password
+        String hashedInput = PasswordUtil.hashPassword(input);
+        if (user.getPassword().equals(hashedInput)) {
+            return true;
+        }
+        
+        // Fallback: Check plain text (for legacy users)
+        if (user.getPassword().equals(input)) {
+            return true;
+        }
+        
+        return false;
     }
 
     public boolean updateEmail(int userId, String newEmail) {
@@ -127,7 +140,7 @@ public class UserDAO {
         String sql = "UPDATE users SET password = ? WHERE id = ?";
         try (Connection conn = DBUtil.getConnection();
              PreparedStatement pstmt = conn.prepareStatement(sql)) {
-            pstmt.setString(1, newPassword.trim());
+            pstmt.setString(1, PasswordUtil.hashPassword(newPassword.trim()));
             pstmt.setInt(2, userId);
             return pstmt.executeUpdate() == 1;
         } catch (SQLException e) {
@@ -194,12 +207,23 @@ public class UserDAO {
             System.out.println("User exists. Checking password...");
             String stored = user.getPassword();
             String inputPwd = (password != null) ? password.trim() : "";
-            if (stored != null && stored.equals(inputPwd)) {
-                System.out.println("Password match!");
+            
+            // Check hashed password
+            String hashedInput = PasswordUtil.hashPassword(inputPwd);
+            if (stored != null && stored.equals(hashedInput)) {
+                System.out.println("Password match (Hashed)!");
                 return user;
-            } else {
-                System.out.println("Password mismatch!");
             }
+            
+            // Fallback: Check plain text and migrate
+            if (stored != null && stored.equals(inputPwd)) {
+                System.out.println("Password match (Plain text). Migrating to hash...");
+                updatePassword(user.getId(), inputPwd); // Update DB with hash
+                user.setPassword(hashedInput); // Update memory object
+                return user;
+            }
+            
+            System.out.println("Password mismatch!");
         }
         return null;
     }

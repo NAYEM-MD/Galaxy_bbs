@@ -30,13 +30,9 @@
         
         <div class="user-actions">
             <% if (currentUser != null) { %>
-            <a href="${pageContext.request.contextPath}/notifications" class="icon-btn" title="Notifications">
-                <svg viewBox="0 0 20 20" xmlns="http://www.w3.org/2000/svg" class="icon">
-                    <path d="M10 2a6 6 0 00-6 6v3.586l-.707.707A1 1 0 004 14h12a1 1 0 00.707-1.707L16 11.586V8a6 6 0 00-6-6zM10 18a3 3 0 01-3-3h6a3 3 0 01-3 3z"/>
-                </svg>
-                <% if (unreadCount > 0) { %>
-                    <span class="notification-badge"><%= unreadCount %></span>
-                <% } %>
+            <a href="${pageContext.request.contextPath}/notifications" class="notification-bell-btn" title="Notifications">
+                <svg viewBox="0 0 448 512" class="bell"><path d="M224 0c-17.7 0-32 14.3-32 32V49.9C119.5 61.4 64 124.2 64 200v33.4c0 45.4-15.5 89.5-43.8 124.9L5.3 377c-5.8 7.2-6.9 17.1-2.9 25.4S14.8 416 24 416H424c9.2 0 17.6-5.3 21.6-13.6s2.9-18.2-2.9-25.4l-14.9-18.6C399.5 322.9 384 278.8 384 233.4V200c0-75.8-55.5-138.6-128-150.1V32c0-17.7-14.3-32-32-32zm0 96h8c57.4 0 104 46.6 104 104v33.4c0 47.9 13.9 94.6 39.7 134.6H72.3C98.1 328 112 281.3 112 233.4V200c0-57.4 46.6-104 104-104h8zm64 352H224 160c0 17 6.7 33.3 18.7 45.3s28.3 18.7 45.3 18.7s33.3-6.7 45.3-18.7s18.7-28.3 18.7-45.3z"></path></svg>
+                <span id="notification-badge" class="notification-badge" style="<%= unreadCount == 0 ? "display:none" : "" %>"><%= unreadCount %></span>
             </a>
 
             <!-- User Dropdown -->
@@ -108,200 +104,7 @@
     </div>
 </header>
 
-<style>
-    .user-menu-container {
-        position: relative;
-        margin-left: 8px;
-    }
-
-    .user-menu-btn {
-        background: transparent;
-        border: 1px solid transparent;
-        display: flex;
-        align-items: center;
-        padding: 4px 8px;
-        border-radius: 4px;
-        cursor: pointer;
-        transition: border 0.2s;
-        height: 36px;
-    }
-
-    .user-menu-btn:hover {
-        border: 1px solid var(--border-color);
-    }
-
-    .user-avatar-small img {
-        width: 24px;
-        height: 24px;
-        border-radius: 4px;
-        display: block;
-    }
-
-    .user-info-brief {
-        display: flex;
-        flex-direction: column;
-        align-items: flex-start;
-        margin-left: 8px;
-        margin-right: 20px; /* Space for arrow */
-        font-size: 12px;
-        line-height: 1.2;
-    }
-
-    .username-text {
-        font-weight: 500;
-        color: var(--text-primary);
-    }
-
-    .karma-text {
-        color: var(--text-secondary);
-    }
-
-    .dropdown-arrow {
-        font-size: 10px;
-        color: var(--text-secondary);
-    }
-
-    .user-dropdown-content {
-        display: none;
-        position: absolute;
-        right: 0;
-        top: 100%;
-        background: var(--glass-bg);
-        backdrop-filter: blur(var(--glass-blur));
-        -webkit-backdrop-filter: blur(var(--glass-blur));
-        min-width: 250px;
-        box-shadow: 0 8px 32px var(--glass-shadow);
-        border-radius: 8px;
-        border: 1px solid var(--glass-border);
-        z-index: 10000;
-        margin-top: 5px;
-    }
-
-    .user-dropdown-content.show {
-        display: block;
-    }
-
-    .dropdown-section-header {
-        padding: 12px 16px;
-        display: flex;
-        align-items: center;
-        color: var(--text-secondary);
-        border-bottom: 1px solid var(--border-color);
-    }
-
-    .section-icon {
-        font-size: 20px;
-        margin-right: 10px;
-        color: var(--text-secondary);
-    }
-
-    .section-info {
-        display: flex;
-        flex-direction: column;
-    }
-
-    .section-title {
-        font-weight: 500;
-        font-size: 14px;
-        color: var(--text-primary);
-    }
-
-    .section-subtitle {
-        font-size: 12px;
-        color: var(--text-secondary);
-    }
-
-    .dropdown-item {
-        display: flex;
-        align-items: center;
-        padding: 12px 16px;
-        color: var(--text-primary);
-        text-decoration: none;
-        font-size: 14px;
-        font-weight: 500;
-        cursor: pointer;
-        transition: background 0.2s;
-    }
-
-    .dropdown-item:hover {
-        background-color: var(--bg-hover);
-    }
-
-    .item-icon {
-        margin-right: 12px;
-        width: 20px;
-        height: 20px;
-        display: flex;
-        align-items: center;
-        justify-content: center;
-        color: var(--text-primary);
-    }
-    
-    .menu-icon {
-        width: 20px;
-        height: 20px;
-        fill: currentColor;
-    }
-
-    .dropdown-divider {
-        height: 1px;
-        background-color: var(--border-color);
-        margin: 4px 0;
-    }
-    
-    /* Toggle Switch */
-    .toggle-switch {
-        margin-left: auto;
-        position: relative;
-        display: inline-block;
-        width: 36px;
-        height: 20px;
-    }
-    
-    .toggle-switch input {
-        opacity: 0;
-        width: 0;
-        height: 0;
-    }
-    
-    .slider {
-        position: absolute;
-        cursor: pointer;
-        top: 0;
-        left: 0;
-        right: 0;
-        bottom: 0;
-        background-color: var(--border-color-strong);
-        transition: .4s;
-    }
-    
-    .slider:before {
-        position: absolute;
-        content: "";
-        height: 16px;
-        width: 16px;
-        left: 2px;
-        bottom: 2px;
-        background-color: var(--bg-card);
-        transition: .4s;
-    }
-    
-    input:checked + .slider {
-        background-color: var(--accent-color);
-    }
-    
-    input:checked + .slider:before {
-        transform: translateX(16px);
-    }
-    
-    .slider.round {
-        border-radius: 20px;
-    }
-    
-    .slider.round:before {
-        border-radius: 50%;
-    }
-</style>
+<link rel="stylesheet" href="${pageContext.request.contextPath}/assets/css/style.css">
 
 <script>
     function toggleUserMenu(event) {
@@ -333,5 +136,24 @@
                 checkbox.checked = localStorage.getItem('theme') === 'dark';
             } catch (e) {}
         }
+    })();
+
+    // Real-time notification count polling (when logged in)
+    (function() {
+        var badge = document.getElementById("notification-badge");
+        if (!badge) return;
+        var ctx = "<%= request.getContextPath() %>";
+        function fetchCount() {
+            fetch(ctx + "/notifications/count", { credentials: "same-origin" })
+                .then(function(r) { return r.json(); })
+                .then(function(data) {
+                    var c = data.count || 0;
+                    badge.textContent = c;
+                    badge.style.display = c > 0 ? "" : "none";
+                })
+                .catch(function() {});
+        }
+        fetchCount(); // immediate fetch on load
+        setInterval(fetchCount, 30000); // then every 30 seconds
     })();
 </script>

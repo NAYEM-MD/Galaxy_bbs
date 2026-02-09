@@ -3,6 +3,7 @@
 <%@ page import="model.Post" %>
 <%@ page import="model.Comment" %>
 <%@ page import="model.User" %>
+<%@ page import="java.util.Date" %>
 <%
     User profileUser = (User) request.getAttribute("profileUser");
     List<Post> posts = (List<Post>) request.getAttribute("posts");
@@ -96,7 +97,18 @@
                         <a href="${pageContext.request.contextPath}/posts/detail?id=<%= comment.getPostId() %>" class="comment-post-link"><%= comment.getPostTitle() != null ? comment.getPostTitle() : "Post" %></a>
                     </div>
                     <div class="comment-card-body"><%= comment.getContent() != null ? comment.getContent() : "" %></div>
-                    <div class="comment-card-time"><%= comment.getCreatedAt() != null ? comment.getCreatedAt() : "" %></div>
+                    <div class="comment-card-time"><%
+    Date ca = comment.getCreatedAt();
+    if (ca != null) {
+        long diff = System.currentTimeMillis() - ca.getTime();
+        long sec = diff / 1000, min = sec / 60, hr = min / 60, day = hr / 24;
+        if (day > 0) out.print(day + "d ago");
+        else if (hr > 0) out.print(hr + "h ago");
+        else if (min > 0) out.print(min + "m ago");
+        else if (sec >= 5) out.print(sec + "s ago");
+        else out.print("just now");
+    } else out.print("");
+%></div>
                 </div>
                     <% } %>
                 <% } else { %>

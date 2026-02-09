@@ -339,6 +339,7 @@
     border-radius: 4px;
     margin-bottom: 30px;
     padding: 12px 12px 0;
+    background-color: #ffffff !important;
 }
 
 .comment-textarea {
@@ -350,14 +351,15 @@
     min-height: 100px;
     box-sizing: border-box;
     font-family: inherit;
-    background-color: rgba(240, 242, 245, 0.95);
+    background-color: #ffffff !important;
     color: var(--text-primary);
 }
 
 .comment-actions {
-    background: rgba(235, 237, 240, 0.95);
+    background-color: #ffffff !important;
     padding: 5px 10px;
-    text-align: right;
+    display: flex;
+    justify-content: flex-end;
 }
 
 .comment {

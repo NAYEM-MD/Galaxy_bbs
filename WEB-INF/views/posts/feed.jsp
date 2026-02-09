@@ -47,7 +47,7 @@
                     </div>
                     <% } %>
                     <div class="post-meta">
-                        <span class="community-name">r/<%= post.getTagName() != null ? post.getTagName() : "general" %></span>
+                        <span class="community-name"><%= (post.getTagName() != null && !"general".equalsIgnoreCase(post.getTagName())) ? post.getTagName() : post.getAuthorName() %></span>
                         <span class="posted-by">Posted by <%= post.getAuthorName() %></span>
                     </div>
                     <h3 class="post-title"><%= post.getTitle() %></h3>

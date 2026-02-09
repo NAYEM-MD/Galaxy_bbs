@@ -3,6 +3,7 @@
 <%@ page import="model.Post" %>
 <%@ page import="model.Comment" %>
 <%@ page import="model.User" %>
+<%@ page import="java.util.Date" %>
 <!DOCTYPE html>
 <html>
 <head>
@@ -39,8 +40,19 @@
                 </div>
                 <div class="detail-content">
                     <div class="post-meta">
-                        <span class="community-name">r/<%= post.getTagName() != null ? post.getTagName() : "general" %></span>
-                        <span class="posted-by">Posted by u/<%= post.getAuthorName() %> • 3h ago</span>
+                        <span class="community-name"><%= (post.getTagName() != null && !"general".equalsIgnoreCase(post.getTagName())) ? post.getTagName() : post.getAuthorName() %></span>
+                        <span class="posted-by">Posted by u/<%= post.getAuthorName() %> • <%
+    Date pa = post.getCreatedAt();
+    if (pa != null) {
+        long diff = System.currentTimeMillis() - pa.getTime();
+        long sec = diff / 1000, min = sec / 60, hr = min / 60, day = hr / 24;
+        if (day > 0) out.print(day + "d ago");
+        else if (hr > 0) out.print(hr + "h ago");
+        else if (min > 0) out.print(min + "m ago");
+        else if (sec >= 5) out.print(sec + "s ago");
+        else out.print("just now");
+    } else out.print("");
+%></span>
                     </div>
                     <h1 class="post-title"><%= post.getTitle() %></h1>
                     <div class="post-body-text">
@@ -95,13 +107,15 @@
                 %>
                 <div class="comment-input-area">
                     <div class="comment-as">
-                        Comment as <a href="#">u/<%= user.getUsername() %></a>
+                        Comment as <a href="#"><%= user.getUsername() %></a>
                     </div>
                     <form action="${pageContext.request.contextPath}/comments/create" method="post">
                         <input type="hidden" name="postId" value="<%= post.getId() %>">
                         <textarea name="content" class="comment-textarea" placeholder="What are your thoughts?"></textarea>
                         <div class="comment-actions">
-                            <button type="submit" class="btn-primary">Comment</button>
+                            <div class="buttons">
+                                <button type="submit" class="btn"><span></span><p data-start="good luck!" data-text="Post Now!" data-title="Comment"></p></button>
+                            </div>
                         </div>
                     </form>
                 </div>
@@ -118,7 +132,18 @@
                     <div class="comment" id="comment-<%= comment.getId() %>">
                         <div class="comment-header">
                             <span class="comment-author">u/<%= comment.getAuthorName() %></span>
-                            <span class="comment-time">just now</span>
+                            <span class="comment-time"><%
+    Date ca = comment.getCreatedAt();
+    if (ca != null) {
+        long diff = System.currentTimeMillis() - ca.getTime();
+        long sec = diff / 1000, min = sec / 60, hr = min / 60, day = hr / 24;
+        if (day > 0) out.print(day + "d ago");
+        else if (hr > 0) out.print(hr + "h ago");
+        else if (min > 0) out.print(min + "m ago");
+        else if (sec >= 5) out.print(sec + "s ago");
+        else out.print("just now");
+    } else out.print("");
+%></span>
                         </div>
                         <div class="comment-body">
                             <%= comment.getContent() %>

@@ -46,7 +46,14 @@ public class PostServlet extends HttpServlet {
         
         switch (path) {
             case "/feed":
-                List<Post> posts = postDAO.findAll(currentUserId);
+                String q = request.getParameter("q");
+                List<Post> posts;
+                if (q != null && !q.trim().isEmpty()) {
+                    posts = postDAO.search(q.trim(), currentUserId);
+                    request.setAttribute("searchQuery", q.trim());
+                } else {
+                    posts = postDAO.findAll(currentUserId);
+                }
                 request.setAttribute("posts", posts);
                 request.getRequestDispatcher("/WEB-INF/views/posts/feed.jsp").forward(request, response);
                 break;

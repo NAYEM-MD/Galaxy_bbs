@@ -21,9 +21,9 @@
     </div>
     
     <div class="header-center">
-        <div class="search-bar">
-            <input type="text" placeholder="Search posts...">
-        </div>
+        <form class="search-bar" action="${pageContext.request.contextPath}/posts/feed" method="get">
+            <input type="text" name="q" placeholder="Search posts...">
+        </form>
     </div>
     
     <div class="header-right">

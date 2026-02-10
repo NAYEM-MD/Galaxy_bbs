@@ -46,6 +46,43 @@ public class PostDAO {
         }
         return posts;
     }
+
+    /**
+     * Search posts by title or author username (case-insensitive).
+     */
+    public List<Post> search(String query, int currentUserId) {
+        List<Post> posts = new ArrayList<>();
+        String sql = "SELECT p.id, p.title, p.content, p.tag_id, p.media_url, p.media_type, p.user_id, p.created_at, " +
+                     "u.username as author_name, t.name as tag_name, " +
+                     "(SELECT COALESCE(SUM(v.vote_value), 0) FROM votes v WHERE v.post_id = p.id) as vote_count, " +
+                     "(SELECT COUNT(*) FROM comments c WHERE c.post_id = p.id) as comment_count, " +
+                     "(SELECT v2.vote_value FROM votes v2 WHERE v2.post_id = p.id AND v2.user_id = ?) as user_vote " +
+                     "FROM posts p JOIN users u ON p.user_id = u.id LEFT JOIN tags t ON p.tag_id = t.id " +
+                     "WHERE LOWER(p.title) LIKE ? OR LOWER(u.username) LIKE ? " +
+                     "ORDER BY p.created_at DESC";
+
+        try (Connection conn = DBUtil.getConnection();
+             PreparedStatement pstmt = conn.prepareStatement(sql)) {
+
+            String pattern = "%" + query.toLowerCase() + "%";
+            pstmt.setInt(1, currentUserId);
+            pstmt.setString(2, pattern);
+            pstmt.setString(3, pattern);
+
+            try (ResultSet rs = pstmt.executeQuery()) {
+                while (rs.next()) {
+                    Post post = mapResultSetToPost(rs);
+                    if ("poll".equals(post.getMediaType())) {
+                        post.setPoll(getPollByPostId(conn, post.getId()));
+                    }
+                    posts.add(post);
+                }
+            }
+        } catch (SQLException e) {
+            e.printStackTrace();
+        }
+        return posts;
+    }
     
     /** Posts by a specific user (for profile "My Posts"). */
     public List<Post> findByUserId(int userId, int currentUserId) {

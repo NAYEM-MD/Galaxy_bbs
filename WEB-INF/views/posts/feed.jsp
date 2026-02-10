@@ -23,8 +23,19 @@
     <div class="main-container">
         <!-- Feed Column -->
         <div class="feed-column">
-            <% 
+            <%
+            String searchQuery = (String) request.getAttribute("searchQuery");
             List<Post> posts = (List<Post>) request.getAttribute("posts");
+            if (searchQuery != null && !searchQuery.trim().isEmpty()) {
+            %>
+                <div class="post-card">
+                    <div class="post-content" style="padding: 12px 16px; border-bottom: 1px solid rgba(128,128,128,0.3); font-size: 14px;">
+                        Showing results for "<strong><%= searchQuery %></strong>"
+                    </div>
+                </div>
+            <%
+            }
+
             if (posts != null && !posts.isEmpty()) {
                 for (Post post : posts) {
             %>
@@ -98,13 +109,25 @@
             <% 
                 }
             } else {
+                if (searchQuery != null && !searchQuery.trim().isEmpty()) {
+            %>
+                <div class="post-card">
+                    <div class="post-content" style="padding: 20px; text-align: center;">
+                        <p>No posts found for "<strong><%= searchQuery %></strong>".</p>
+                    </div>
+                </div>
+            <%
+                } else {
             %>
                 <div class="post-card">
                     <div class="post-content" style="padding: 20px; text-align: center;">
                         <p>No posts yet. Be the first to create one!</p>
                     </div>
                 </div>
-            <% } %>
+            <%
+                }
+            }
+            %>
         </div>
 
     </div>

@@ -106,6 +106,9 @@
 <link rel="stylesheet" href="${pageContext.request.contextPath}/assets/css/style.css">
 
 <script>
+    // Expose app context path for JS modules (vote.js, poll.js, etc.)
+    window.appContextPath = "<%= request.getContextPath() %>";
+
     function toggleUserMenu(event) {
         event.stopPropagation();
         var dropdown = document.getElementById("user-dropdown");

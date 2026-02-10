@@ -351,7 +351,7 @@
     min-height: 100px;
     box-sizing: border-box;
     font-family: inherit;
-    background-color: #f5f0f0 !important;
+    background-color: #fffdfd !important;
     color: var(--text-primary);
 }
 

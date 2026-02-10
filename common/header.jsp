@@ -23,6 +23,13 @@
     <div class="header-center">
         <form class="search-bar" action="${pageContext.request.contextPath}/posts/feed" method="get">
             <input type="text" name="q" placeholder="Search posts...">
+            <button type="submit" class="search-btn" aria-label="Search">
+                <!-- Google-style search icon: circle with handle -->
+                <svg viewBox="0 0 20 20" class="search-icon" aria-hidden="true">
+                    <circle cx="9" cy="9" r="5.2"></circle>
+                    <line x1="13" y1="13" x2="17" y2="17"></line>
+                </svg>
+            </button>
         </form>
     </div>
     

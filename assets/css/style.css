@@ -12,6 +12,7 @@
     border: none;
     cursor: pointer;
     text-decoration: none;
+    color: var(--icon-color);
 }
 
 .notification-bell-btn .bell {
@@ -19,7 +20,8 @@
 }
 
 .notification-bell-btn .bell path {
-    fill: black;
+    /* Follow theme icon color (light in dark mode, dark in light mode) */
+    fill: currentColor;
 }
 
 .notification-bell-btn:hover .bell {

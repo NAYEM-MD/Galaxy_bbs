@@ -98,6 +98,9 @@
     </div>
 </header>
 
+<!-- Global scroll-to-top button (visible after scroll) -->
+<button id="scrollToTopBtn" class="scroll-to-top" aria-label="Scroll to top">↑</button>
+
 <link rel="stylesheet" href="${pageContext.request.contextPath}/assets/css/style.css">
 
 <script>
@@ -152,5 +155,28 @@
         }
         fetchCount(); // immediate fetch on load
         setInterval(fetchCount, 30000); // then every 30 seconds
+    })();
+
+    // Scroll-to-top button behavior
+    (function() {
+        var btn = document.getElementById("scrollToTopBtn");
+        if (!btn) return;
+
+        function toggleScrollButton() {
+            var y = window.scrollY || document.documentElement.scrollTop;
+            if (y > 200) {
+                btn.classList.add("visible");
+            } else {
+                btn.classList.remove("visible");
+            }
+        }
+
+        window.addEventListener("scroll", toggleScrollButton);
+        // Initialize state on load
+        toggleScrollButton();
+
+        btn.addEventListener("click", function() {
+            window.scrollTo({ top: 0, behavior: "smooth" });
+        });
     })();
 </script>

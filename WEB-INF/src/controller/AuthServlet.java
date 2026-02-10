@@ -5,6 +5,7 @@ import dao.PasswordResetTokenDAO;
 import model.User;
 
 import java.io.IOException;
+import java.io.UnsupportedEncodingException;
 import java.util.Date;
 import java.util.Properties;
 import jakarta.mail.Authenticator;
@@ -259,7 +260,7 @@ public class AuthServlet extends HttpServlet {
 
         try {
             MimeMessage msg = new MimeMessage(session);
-            msg.setFrom(new InternetAddress(user));
+            msg.setFrom(new InternetAddress(user, "Galaxy_BBS"));
             msg.setRecipients(Message.RecipientType.TO, InternetAddress.parse(toEmail));
             msg.setSubject("Welcome to Galaxy_BBS");
             msg.setSentDate(new Date());
@@ -275,7 +276,7 @@ public class AuthServlet extends HttpServlet {
 
             Transport.send(msg);
             System.out.println("[Galaxy_BBS] Welcome email sent to: " + toEmail);
-        } catch (MessagingException e) {
+        } catch (MessagingException | UnsupportedEncodingException e) {
             System.err.println("[Galaxy_BBS] Failed to send welcome email to " + toEmail + ": " + e.getMessage());
             e.printStackTrace();
         }
@@ -316,7 +317,7 @@ public class AuthServlet extends HttpServlet {
 
         try {
             MimeMessage msg = new MimeMessage(session);
-            msg.setFrom(new InternetAddress(user));
+            msg.setFrom(new InternetAddress(user, "Galaxy_BBS"));
             msg.setRecipients(Message.RecipientType.TO, InternetAddress.parse(toEmail));
             msg.setSubject("Galaxy_BBS - Password Reset");
             msg.setSentDate(new Date());
@@ -332,7 +333,7 @@ public class AuthServlet extends HttpServlet {
 
             Transport.send(msg);
             System.out.println("[Galaxy_BBS] Password reset email sent to: " + toEmail);
-        } catch (MessagingException e) {
+        } catch (MessagingException | UnsupportedEncodingException e) {
             System.err.println("[Galaxy_BBS] Failed to send password reset email to " + toEmail + ": " + e.getMessage());
             e.printStackTrace();
         }

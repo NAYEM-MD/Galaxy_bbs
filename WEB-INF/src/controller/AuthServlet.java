@@ -1,6 +1,7 @@
 package controller;
 
 import dao.UserDAO;
+import dao.PasswordResetTokenDAO;
 import model.User;
 
 import java.io.IOException;
@@ -23,15 +24,28 @@ import jakarta.servlet.RequestDispatcher;
 
 public class AuthServlet extends HttpServlet {
     private UserDAO userDAO; // lazy init in doPost so doGet never touches DB
+    private PasswordResetTokenDAO tokenDAO = new PasswordResetTokenDAO();
 
     protected void doGet(HttpServletRequest request, HttpServletResponse response) throws ServletException, IOException {
-        String path = request.getServletPath(); // exact: /auth/login, /auth/register, /auth/logout
+        String path = request.getServletPath(); // exact: /auth/login, /auth/register, /auth/logout, /auth/forgot-password, /auth/reset-password
         switch (path) {
             case "/auth/login":
                 forwardTo(request, response, "/auth/login.jsp");
                 break;
             case "/auth/register":
                 forwardTo(request, response, "/auth/register.jsp");
+                break;
+            case "/auth/forgot-password":
+                forwardTo(request, response, "/auth/forgot-password.jsp");
+                break;
+            case "/auth/reset-password":
+                String token = request.getParameter("token");
+                if (token == null || token.trim().isEmpty()) {
+                    response.sendRedirect(request.getContextPath() + "/auth/login");
+                    return;
+                }
+                request.setAttribute("token", token);
+                forwardTo(request, response, "/auth/reset-password.jsp");
                 break;
             case "/auth/logout":
                 HttpSession session = request.getSession(false);
@@ -111,6 +125,96 @@ public class AuthServlet extends HttpServlet {
 
             // Redirect to login page
             response.sendRedirect(request.getContextPath() + "/auth/login");
+        } else if ("/auth/forgot-password".equals(path)) {
+            handleForgotPassword(request, response);
+        } else if ("/auth/reset-password".equals(path)) {
+            handleResetPassword(request, response);
+        }
+    }
+
+    private void handleForgotPassword(HttpServletRequest request, HttpServletResponse response) throws ServletException, IOException {
+        String email = request.getParameter("email");
+        if (email != null) email = email.trim();
+        if (email == null) email = "";
+
+        User user = getUserDAO().findByEmail(email);
+
+        // Always show a generic message to avoid user enumeration
+        String genericMsg = "If an account with that email exists, a reset link has been sent.";
+        request.setAttribute("infoMsg", genericMsg);
+
+        if (user == null) {
+            forwardTo(request, response, "/auth/forgot-password.jsp");
+            return;
+        }
+
+        // Generate a random token
+        String token = java.util.UUID.randomUUID().toString() + "-" + Long.toHexString(System.nanoTime());
+        long expiresAt = System.currentTimeMillis() + (60L * 60L * 1000L); // 1 hour
+
+        try {
+            // Persist token in DB (requires password_reset_tokens table)
+            tokenDAO.createToken(user.getId(), token, expiresAt);
+
+            String baseUrl = request.getRequestURL().toString().replace(request.getRequestURI(), request.getContextPath());
+            String resetLink = baseUrl + "/auth/reset-password?token=" + java.net.URLEncoder.encode(token, java.nio.charset.StandardCharsets.UTF_8);
+
+            sendPasswordResetEmail(email, resetLink);
+        } catch (Throwable t) {
+            // Most common causes:
+            // - password_reset_tokens table does not exist
+            // - JDBC error
+            // - Jakarta Mail / SMTP misconfiguration
+            System.err.println("[Galaxy_BBS] Failed to start password reset flow: " + t.getMessage());
+            t.printStackTrace();
+            request.setAttribute("errorMsg", "We could not send a reset email right now. Please try again later.");
+        }
+
+        forwardTo(request, response, "/auth/forgot-password.jsp");
+    }
+
+    private void handleResetPassword(HttpServletRequest request, HttpServletResponse response) throws ServletException, IOException {
+        String token = request.getParameter("token");
+        String password = request.getParameter("password");
+        String confirm = request.getParameter("confirmPassword");
+
+        if (token == null || token.trim().isEmpty()) {
+            response.sendRedirect(request.getContextPath() + "/auth/login");
+            return;
+        }
+
+        if (password == null) password = "";
+        if (confirm == null) confirm = "";
+
+        if (!password.equals(confirm)) {
+            request.setAttribute("errorMsg", "Passwords do not match.");
+            request.setAttribute("token", token);
+            forwardTo(request, response, "/auth/reset-password.jsp");
+            return;
+        }
+
+        if (password.trim().isEmpty()) {
+            request.setAttribute("errorMsg", "Password cannot be empty.");
+            request.setAttribute("token", token);
+            forwardTo(request, response, "/auth/reset-password.jsp");
+            return;
+        }
+
+        int userId = tokenDAO.findUserIdByValidToken(token);
+        if (userId <= 0) {
+            request.setAttribute("errorMsg", "Reset link is invalid or has expired.");
+            forwardTo(request, response, "/auth/forgot-password.jsp");
+            return;
+        }
+
+        boolean updated = getUserDAO().updatePassword(userId, password);
+        if (updated) {
+            tokenDAO.markTokenUsed(token);
+            response.sendRedirect(request.getContextPath() + "/auth/login?reset=1");
+        } else {
+            request.setAttribute("errorMsg", "Could not reset password. Please try again.");
+            request.setAttribute("token", token);
+            forwardTo(request, response, "/auth/reset-password.jsp");
         }
     }
 
@@ -173,6 +277,63 @@ public class AuthServlet extends HttpServlet {
             System.out.println("[Galaxy_BBS] Welcome email sent to: " + toEmail);
         } catch (MessagingException e) {
             System.err.println("[Galaxy_BBS] Failed to send welcome email to " + toEmail + ": " + e.getMessage());
+            e.printStackTrace();
+        }
+    }
+
+    /**
+     * Sends a password reset email with a unique link.
+     */
+    private void sendPasswordResetEmail(String toEmail, String resetLink) {
+        String user = System.getenv("SMTP_USER");
+        String pass = System.getenv("SMTP_PASSWORD");
+        if (user == null || user.isEmpty()) {
+            user = "YOUR_GMAIL@gmail.com";
+            System.err.println("[Galaxy_BBS] SMTP_USER not set. Run set_smtp_env.bat in the same window before starting Tomcat.");
+        }
+        if (pass == null || pass.isEmpty()) {
+            pass = "YOUR_APP_PASSWORD";
+            System.err.println("[Galaxy_BBS] SMTP_PASSWORD not set. Gmail will reject login.");
+        }
+        final String smtpUser = user;
+        final String smtpPassword = pass;
+
+        Properties props = new Properties();
+        props.put("mail.smtp.host", "smtp.gmail.com");
+        props.put("mail.smtp.port", "587");
+        props.put("mail.smtp.auth", "true");
+        props.put("mail.smtp.starttls.enable", "true");
+        props.put("mail.smtp.ssl.trust", "smtp.gmail.com");
+
+        Authenticator authenticator = new Authenticator() {
+            @Override
+            protected PasswordAuthentication getPasswordAuthentication() {
+                return new PasswordAuthentication(smtpUser, smtpPassword);
+            }
+        };
+
+        Session session = Session.getInstance(props, authenticator);
+
+        try {
+            MimeMessage msg = new MimeMessage(session);
+            msg.setFrom(new InternetAddress(user));
+            msg.setRecipients(Message.RecipientType.TO, InternetAddress.parse(toEmail));
+            msg.setSubject("Galaxy_BBS - Password Reset");
+            msg.setSentDate(new Date());
+            msg.setText(
+                "Hello,\n\n"
+                + "We received a request to reset the password for your Galaxy_BBS account.\n\n"
+                + "To reset your password, click the link below (or copy and paste it into your browser):\n"
+                + resetLink + "\n\n"
+                + "This link will expire in 1 hour. If you did not request a password reset, you can safely ignore this email.\n\n"
+                + "Best regards,\n"
+                + "Galaxy_BBS Team"
+            );
+
+            Transport.send(msg);
+            System.out.println("[Galaxy_BBS] Password reset email sent to: " + toEmail);
+        } catch (MessagingException e) {
+            System.err.println("[Galaxy_BBS] Failed to send password reset email to " + toEmail + ": " + e.getMessage());
             e.printStackTrace();
         }
     }

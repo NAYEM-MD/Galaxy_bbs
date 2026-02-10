@@ -82,10 +82,6 @@
     color: var(--text-primary);
 }
 
-.karma-text {
-    color: var(--text-secondary);
-}
-
 .dropdown-arrow {
     font-size: 10px;
     color: var(--text-secondary);

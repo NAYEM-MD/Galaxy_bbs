@@ -196,7 +196,6 @@ body {
 }
 
 [data-theme="dark"] .section-subtitle,
-[data-theme="dark"] .karma-text,
 [data-theme="dark"] .dropdown-arrow {
     color: var(--text-secondary);
 }

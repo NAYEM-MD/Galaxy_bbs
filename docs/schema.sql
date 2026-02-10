@@ -1,5 +1,28 @@
 -- Galaxy BBS Schema
 -- Oracle SQL Compatible
+--
+-- App DB credentials (as used by `util.DBUtil` defaults):
+--   user: Galaxy_bbs
+--   pass: pro
+--
+-- Optional (run manually as SYS / privileged user only):
+-- Create the application schema/user if it doesn't exist.
+-- Keeping this commented so `util.SchemaLoader` can run under the app user.
+--
+-- DECLARE
+--   v_count NUMBER := 0;
+-- BEGIN
+--   SELECT COUNT(*) INTO v_count FROM all_users WHERE username = 'GALAXY_BBS';
+--   IF v_count = 0 THEN
+--     EXECUTE IMMEDIATE 'CREATE USER Galaxy_bbs IDENTIFIED BY pro';
+--     EXECUTE IMMEDIATE 'GRANT CONNECT, RESOURCE TO Galaxy_bbs';
+--     EXECUTE IMMEDIATE 'ALTER USER Galaxy_bbs QUOTA UNLIMITED ON USERS';
+--   END IF;
+-- END;
+-- /
+--
+-- If you run this script while connected as SYS and want objects under Galaxy_bbs:
+-- ALTER SESSION SET CURRENT_SCHEMA = Galaxy_bbs;
 
 BEGIN
     EXECUTE IMMEDIATE 'DROP TABLE notifications CASCADE CONSTRAINTS';

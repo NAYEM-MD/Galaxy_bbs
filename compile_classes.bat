@@ -6,10 +6,10 @@ REM
 REM Optional: DB connectivity test (Oracle)
 REM   compile_classes.bat dbtest [DB_URL] [DB_USER] [DB_PASSWORD]
 REM Example:
-REM   compile_classes.bat dbtest "jdbc:oracle:thin:@//192.168.1.50:1521/orclpdb1" info pro
+REM   compile_classes.bat dbtest "jdbc:oracle:thin:@//192.168.1.50:1521/orclpdb1" Galaxy_bbs pro
 REM Or set env vars before running:
 REM   set DB_URL=...
-REM   set DB_USER=info
+REM   set DB_USER=Galaxy_bbs
 REM   set DB_PASSWORD=pro
 REM   compile_classes.bat dbtest
 REM ============================================================

@@ -8,6 +8,7 @@
     <link rel="stylesheet" href="${pageContext.request.contextPath}/assets/css/theme.css">
     <link rel="stylesheet" href="${pageContext.request.contextPath}/assets/css/login.css">
     <script src="${pageContext.request.contextPath}/assets/js/theme.js"></script>
+    <script src="${pageContext.request.contextPath}/assets/js/auth.js"></script>
 </head>
 <body>
 
@@ -24,13 +25,13 @@
             <p class="info-msg"><%= request.getAttribute("infoMsg") %></p>
         <% } %>
 
-        <form action="${pageContext.request.contextPath}/auth/forgot-password" method="post">
+        <form id="forgotForm" action="${pageContext.request.contextPath}/auth/forgot-password" method="post">
             <div class="form-group">
                 <label>Email</label>
                 <input type="email" name="email" placeholder="Enter the email linked to your account" required autofocus>
             </div>
 
-            <button type="submit" class="login-btn">Send reset link</button>
+            <button id="forgotSubmit" type="submit" class="login-btn">Send reset link</button>
             
             <div class="footer-links">
                 <a href="${pageContext.request.contextPath}/auth/login" class="forgot-password">Back to login</a>

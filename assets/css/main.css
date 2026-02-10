@@ -65,12 +65,21 @@ body {
     margin: 0 20px;
 }
 
+.search-bar {
+    display: flex;
+    align-items: center;
+    background-color: var(--bg-input);
+    border: 1px solid var(--border-color);
+    border-radius: 20px;
+    padding: 0 4px 0 12px;
+}
+
 .search-bar input {
     width: 100%;
-    padding: 8px 16px;
+    padding: 6px 8px;
     border-radius: 20px;
-    border: 1px solid var(--border-color);
-    background-color: var(--bg-input);
+    border: none;
+    background-color: transparent;
     color: var(--text-primary);
     font-size: 14px;
 }
@@ -80,19 +89,40 @@ body {
 }
 
 .search-bar input:focus {
-    background-color: var(--bg-card);
-    border-color: var(--accent-color);
     outline: none;
 }
 
-[data-theme="dark"] .search-bar input {
+.search-btn {
+    border: none;
+    background: transparent;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 30px;
+    height: 30px;
+    border-radius: 999px;
+    cursor: pointer;
+    color: var(--text-secondary);
+}
+
+.search-btn:hover {
+    color: var(--accent-color);
+}
+
+.search-icon {
+    width: 18px;
+    height: 18px;
+    fill: none;
+    stroke: currentColor;
+    stroke-width: 1.8;
+}
+
+[data-theme="dark"] .search-icon {
+    color: var(--text-secondary);
+}
+
+[data-theme="dark"] .search-bar {
     background-color: var(--bg-input);
-}
-
-[data-theme="dark"] .search-bar input:focus {
-    border-color: var(--border-color);
-    background-color: var(--bg-hover);
-    outline: none;
 }
 
 .header-right {
@@ -205,13 +235,53 @@ body {
 }
 
 [data-theme="dark"] .slider {
-    background-color: var(--border-color-strong);
+    /* Make toggle track clearly visible in dark mode */
+    background-color: rgba(255, 255, 255, 0.18);
+    border: 1px solid rgba(255, 255, 255, 0.4);
 }
 
 [data-theme="dark"] .slider:before {
-    background-color: var(--bg-input);
+    /* Bright thumb so it stands out */
+    background-color: #ffffff;
 }
 
 [data-theme="dark"] input:checked + .slider {
-    background-color: var(--bg-hover);
+    /* Use accent color when enabled */
+    background-color: var(--accent-color);
+}
+
+/* Scroll-to-top button */
+.scroll-to-top {
+    position: fixed;
+    right: 24px;
+    bottom: 24px;
+    width: 40px;
+    height: 40px;
+    border-radius: 999px;
+    border: none;
+    background-color: var(--accent-color);
+    color: #fff;
+    font-size: 20px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    box-shadow: 0 4px 12px var(--shadow-color);
+    cursor: pointer;
+    opacity: 0;
+    pointer-events: none;
+    transform: translateY(12px);
+    transition: opacity 0.2s ease, transform 0.2s ease, background-color 0.2s ease;
+    z-index: 1200;
+}
+
+.scroll-to-top.visible {
+    opacity: 1;
+    pointer-events: auto;
+    transform: translateY(0);
+}
+
+.scroll-to-top:hover {
+    /* Invert: white button with accent arrow on hover */
+    background-color: #ffffff;
+    color: var(--accent-color);
 }

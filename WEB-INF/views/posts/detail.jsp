@@ -159,20 +159,6 @@
                 <p>Post not found.</p>
             <% } %>
         </div>
-
-        <div class="detail-right">
-             <div class="sidebar-card">
-                <div class="card-header">
-                    <h3>About Community</h3>
-                </div>
-                <div class="card-content">
-                    <p>Welcome to r/<%= post != null && post.getTagName() != null ? post.getTagName() : "General" %></p>
-                    <div class="stats" style="margin-top: 10px; font-weight: 700;">
-                        25.4m <span style="font-weight: 400; font-size: 12px; color: #7c7c7c;">Members</span>
-                    </div>
-                </div>
-            </div>
-        </div>
     </div>
     
     <script src="${pageContext.request.contextPath}/assets/js/vote.js"></script>

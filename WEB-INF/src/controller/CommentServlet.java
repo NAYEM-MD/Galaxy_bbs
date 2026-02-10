@@ -54,7 +54,10 @@ public class CommentServlet extends HttpServlet {
                 notificationDAO.createNotification(notification);
             }
             
-            response.sendRedirect(request.getContextPath() + "/posts/detail?id=" + postId);
+            // Redirect back to the post detail and scroll to the new comment
+            int newCommentId = comment.getId();
+            String anchor = newCommentId > 0 ? "#comment-" + newCommentId : "";
+            response.sendRedirect(request.getContextPath() + "/posts/detail?id=" + postId + anchor);
         }
     }
 }

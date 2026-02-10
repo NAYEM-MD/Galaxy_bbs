@@ -1,7 +1,8 @@
 function vote(postId, value, element) {
     // Check if user is logged in (rudimentary check, backend validates too)
-    
-    fetch('http://localhost:8080/galaxy_test/vote', {
+    var ctx = window.appContextPath || '';
+
+    fetch(ctx + '/vote', {
         method: 'POST',
         headers: {
             'Content-Type': 'application/x-www-form-urlencoded',
@@ -10,7 +11,7 @@ function vote(postId, value, element) {
     })
     .then(response => {
         if (response.status === 401) {
-            window.location.href = 'http://localhost:8080/galaxy_test/auth/login';
+            window.location.href = ctx + '/auth/login';
             return;
         }
         return response.json();

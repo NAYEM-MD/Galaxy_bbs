@@ -258,7 +258,8 @@ body {
 
 [data-theme="dark"] .editor-toolbar,
 [data-theme="dark"] .comment-actions {
-    background-color: rgba(39, 39, 41, 0.6);
+    /* Match post-footer style: no solid bar, just subtle border on same bg */
+    background-color: transparent;
     border-color: rgba(255, 255, 255, 0.06);
 }
 

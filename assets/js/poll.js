@@ -1,6 +1,7 @@
 function votePoll(pollId, optionId) {
     const xhr = new XMLHttpRequest();
-    xhr.open('POST', '/galaxy_test/polls/vote', true);
+    const ctx = window.appContextPath || '';
+    xhr.open('POST', ctx + '/polls/vote', true);
     xhr.setRequestHeader('Content-Type', 'application/x-www-form-urlencoded');
     
     xhr.onload = function() {
@@ -12,7 +13,7 @@ function votePoll(pollId, optionId) {
         } else if (xhr.status === 409) {
             alert('You have already voted on this poll.');
         } else if (xhr.status === 401) {
-            window.location.href = '/galaxy_test/auth/login';
+            window.location.href = ctx + '/auth/login';
         } else {
             alert('Error voting on poll. Please try again.');
         }

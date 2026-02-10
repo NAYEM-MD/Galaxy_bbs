@@ -13,14 +13,24 @@
     <div class="header-left">
         <a href="${pageContext.request.contextPath}/posts/feed" class="logo-link">
             <img src="${pageContext.request.contextPath}/assets/img/logo.png?v=3" alt="Galaxy^bbs" class="header-logo" onerror="this.style.display='none';this.nextElementSibling.style.display='block'">
-            <span class="logo-text">Galaxy^bbs</span>
+            <button class="logo-button" data-text="Galaxy_bbs">
+                <span class="actual-text">&nbsp;Galaxy_bbs&nbsp;</span>
+                <span aria-hidden="true" class="hover-text">&nbsp;Galaxy_bbs&nbsp;</span>
+            </button>
         </a>
     </div>
     
     <div class="header-center">
-        <div class="search-bar">
-            <input type="text" placeholder="Search posts...">
-        </div>
+        <form class="search-bar" action="${pageContext.request.contextPath}/posts/feed" method="get">
+            <input type="text" name="q" placeholder="Search posts...">
+            <button type="submit" class="search-btn" aria-label="Search">
+                <!-- Google-style search icon: circle with handle -->
+                <svg viewBox="0 0 20 20" class="search-icon" aria-hidden="true">
+                    <circle cx="9" cy="9" r="5.2"></circle>
+                    <line x1="13" y1="13" x2="17" y2="17"></line>
+                </svg>
+            </button>
+        </form>
     </div>
     
     <div class="header-right">
@@ -48,14 +58,6 @@
                 </button>
 
                 <div id="user-dropdown" class="user-dropdown-content">
-                    <div class="dropdown-section-header">
-                        <span class="section-icon">👤</span>
-                        <div class="section-info">
-                            <span class="section-title">My Stuff</span>
-                            <span class="section-subtitle">Online Status: On</span>
-                        </div>
-                    </div>
-
                     <a href="${pageContext.request.contextPath}/profile?username=<%= currentUser.getUsername() %>" class="dropdown-item">
                         <span class="item-icon">
                             <!-- Simple Profile Icon -->
@@ -103,9 +105,15 @@
     </div>
 </header>
 
+<!-- Global scroll-to-top button (visible after scroll) -->
+<button id="scrollToTopBtn" class="scroll-to-top" aria-label="Scroll to top">↑</button>
+
 <link rel="stylesheet" href="${pageContext.request.contextPath}/assets/css/style.css">
 
 <script>
+    // Expose app context path for JS modules (vote.js, poll.js, etc.)
+    window.appContextPath = "<%= request.getContextPath() %>";
+
     function toggleUserMenu(event) {
         event.stopPropagation();
         var dropdown = document.getElementById("user-dropdown");
@@ -154,5 +162,28 @@
         }
         fetchCount(); // immediate fetch on load
         setInterval(fetchCount, 30000); // then every 30 seconds
+    })();
+
+    // Scroll-to-top button behavior
+    (function() {
+        var btn = document.getElementById("scrollToTopBtn");
+        if (!btn) return;
+
+        function toggleScrollButton() {
+            var y = window.scrollY || document.documentElement.scrollTop;
+            if (y > 200) {
+                btn.classList.add("visible");
+            } else {
+                btn.classList.remove("visible");
+            }
+        }
+
+        window.addEventListener("scroll", toggleScrollButton);
+        // Initialize state on load
+        toggleScrollButton();
+
+        btn.addEventListener("click", function() {
+            window.scrollTo({ top: 0, behavior: "smooth" });
+        });
     })();
 </script>

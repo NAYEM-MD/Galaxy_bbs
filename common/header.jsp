@@ -13,7 +13,10 @@
     <div class="header-left">
         <a href="${pageContext.request.contextPath}/posts/feed" class="logo-link">
             <img src="${pageContext.request.contextPath}/assets/img/logo.png?v=3" alt="Galaxy^bbs" class="header-logo" onerror="this.style.display='none';this.nextElementSibling.style.display='block'">
-            <span class="logo-text">Galaxy^bbs</span>
+            <button class="logo-button" data-text="Galaxy_bbs">
+                <span class="actual-text">&nbsp;Galaxy_bbs&nbsp;</span>
+                <span aria-hidden="true" class="hover-text">&nbsp;Galaxy_bbs&nbsp;</span>
+            </button>
         </a>
     </div>
     
@@ -48,14 +51,6 @@
                 </button>
 
                 <div id="user-dropdown" class="user-dropdown-content">
-                    <div class="dropdown-section-header">
-                        <span class="section-icon">👤</span>
-                        <div class="section-info">
-                            <span class="section-title">My Stuff</span>
-                            <span class="section-subtitle">Online Status: On</span>
-                        </div>
-                    </div>
-
                     <a href="${pageContext.request.contextPath}/profile?username=<%= currentUser.getUsername() %>" class="dropdown-item">
                         <span class="item-icon">
                             <!-- Simple Profile Icon -->

@@ -16,6 +16,7 @@ public class Post implements Serializable {
     private String mediaUrl;
     private String mediaType;
     private int voteCount; // Transient field
+    private int commentCount; // Transient field
     private int userVote; // Transient field: 1 (up), -1 (down), 0 (none)
     private Poll poll; // Transient field for poll data
     private Date createdAt;
@@ -65,6 +66,9 @@ public class Post implements Serializable {
 
     public int getVoteCount() { return voteCount; }
     public void setVoteCount(int voteCount) { this.voteCount = voteCount; }
+
+    public int getCommentCount() { return commentCount; }
+    public void setCommentCount(int commentCount) { this.commentCount = commentCount; }
 
     public int getUserVote() { return userVote; }
     public void setUserVote(int userVote) { this.userVote = userVote; }

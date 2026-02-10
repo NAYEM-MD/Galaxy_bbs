@@ -335,11 +335,10 @@
 }
 
 .comment-input-area {
-
     border-radius: 4px;
     margin-bottom: 30px;
     padding: 12px 12px 0;
-    background-color: #ffffff !important;
+    background-color: #ffffff;
 }
 
 .comment-textarea {
@@ -351,12 +350,12 @@
     min-height: 100px;
     box-sizing: border-box;
     font-family: inherit;
-    background-color: #fffdfd !important;
+    background-color: #fffdfd;
     color: var(--text-primary);
 }
 
 .comment-actions {
-    background-color: #ffffff !important;
+    background-color: #ffffff;
     padding: 5px 10px;
     display: flex;
     justify-content: flex-end;

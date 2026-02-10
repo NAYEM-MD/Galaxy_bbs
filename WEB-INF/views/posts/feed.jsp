@@ -91,7 +91,7 @@
                     <% } %>
                     
                     <div class="post-footer">
-                        <div class="footer-btn">💬 Comments</div>
+                        <div class="footer-btn">💬 <%= post.getCommentCount() %> Comments</div>
                     </div>
                 </div>
             </div>

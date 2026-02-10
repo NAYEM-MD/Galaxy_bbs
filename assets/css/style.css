@@ -228,6 +228,63 @@ input:checked + .slider:before {
     border-radius: 50%;
 }
 
+/* Logo animated text button */
+.logo-button {
+    margin: 0;
+    height: auto;
+    background: transparent;
+    padding: 0;
+    border: none;
+    cursor: pointer;
+
+    /* align nicely with logo image */
+    display: inline-flex;
+    align-items: center;
+}
+
+.logo-button {
+    --border-right: 6px;
+    --text-stroke-color: rgb(0, 0, 0);
+    --animation-color: #009dc4;
+    --fs-size: 1.1rem;
+    letter-spacing: 3px;
+    text-decoration: none;
+    font-size: var(--fs-size);
+    font-family: "Arial", sans-serif;
+    position: relative;
+    text-transform: uppercase;
+    color: var(--text-stroke-color); /* show solid black by default */
+    -webkit-text-stroke: 0;
+}
+
+.logo-button .actual-text {
+    /* base text visible in black */
+    visibility: visible;
+}
+
+/* Dark mode: make logo text white */
+[data-theme="dark"] .logo-button {
+    --text-stroke-color: #ffffff;
+    color: var(--text-stroke-color);
+}
+
+.logo-button .hover-text {
+    position: absolute;
+    box-sizing: border-box;
+    color: var(--animation-color);
+    width: 0%;
+    inset: 0;
+    border-right: var(--border-right) solid var(--animation-color);
+    overflow: hidden;
+    transition: 0.5s;
+    -webkit-text-stroke: 1px var(--animation-color);
+}
+
+.logo-button:hover .hover-text {
+    width: 100%;
+    filter: drop-shadow(0 0 23px var(--animation-color));
+}
+
 /* Comment submit button */
 .comment-actions .buttons {
     display: flex;

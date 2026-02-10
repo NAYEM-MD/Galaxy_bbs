@@ -60,7 +60,8 @@ label {
 }
 
 input[type="text"],
-input[type="password"] {
+input[type="password"],
+input[type="email"] {
     width: 100%;
     padding: 12px;
     border: 1px solid var(--border-color);
@@ -73,7 +74,8 @@ input[type="password"] {
 }
 
 input[type="text"]::placeholder,
-input[type="password"]::placeholder {
+input[type="password"]::placeholder,
+input[type="email"]::placeholder {
     color: var(--text-muted);
 }
 
@@ -138,6 +140,13 @@ input:focus {
 
 .error-msg {
     color: #ea0027;
+    font-size: 14px;
+    margin-bottom: 20px;
+    text-align: center;
+}
+
+.info-msg {
+    color: #2f8f2f;
     font-size: 14px;
     margin-bottom: 20px;
     text-align: center;

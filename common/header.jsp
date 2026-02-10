@@ -37,13 +37,12 @@
 
             <!-- User Dropdown -->
             <div class="user-menu-container">
-                <button id="user-menu-btn" class="user-menu-btn" onclick="toggleUserMenu(event)">
+            <button id="user-menu-btn" class="user-menu-btn" onclick="toggleUserMenu(event)">
                     <div class="user-avatar-small">
                         <img src="${pageContext.request.contextPath}/assets/img/default-avatar.png" onerror="this.src='https://www.redditstatic.com/avatars/avatar_default_02_0079D3.png'" alt="<%= currentUser.getUsername() %>">
                     </div>
                     <div class="user-info-brief">
                         <span class="username-text"><%= currentUser.getUsername() %></span>
-                        <span class="karma-text">1 karma</span>
                     </div>
                     <span class="dropdown-arrow">▼</span>
                 </button>

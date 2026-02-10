@@ -36,7 +36,7 @@
             <button type="submit" class="login-btn">Log In</button>
             
             <div class="footer-links">
-                <a href="#" class="forgot-password">Forgot password?</a>
+                <a href="${pageContext.request.contextPath}/auth/forgot-password.jsp" class="forgot-password">Forgot password?</a>
                 <p>Don't have an account? <a href="${pageContext.request.contextPath}/auth/register" class="create-account">Create an account</a></p>
             </div>
         </form>

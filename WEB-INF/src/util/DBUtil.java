@@ -8,7 +8,7 @@ public class DBUtil {
     // Oracle Database Connection URL
     // Default to localhost XE instance
     private static final String DEFAULT_URL = "jdbc:oracle:thin:@localhost:1521:orcl";
-    private static final String DEFAULT_USER = "info";
+    private static final String DEFAULT_USER = "Galaxy_bbs";
     private static final String DEFAULT_PASSWORD = "pro";
 
     static {

@@ -7,7 +7,9 @@
     <link rel="stylesheet" href="${pageContext.request.contextPath}/assets/css/reset.css">
     <link rel="stylesheet" href="${pageContext.request.contextPath}/assets/css/theme.css">
     <link rel="stylesheet" href="${pageContext.request.contextPath}/assets/css/login.css">
+    <link rel="stylesheet" href="${pageContext.request.contextPath}/assets/css/auth.css">
     <script src="${pageContext.request.contextPath}/assets/js/theme.js"></script>
+    <script src="${pageContext.request.contextPath}/assets/js/auth.js"></script>
 </head>
 <body>
 
@@ -30,7 +32,12 @@
 
             <div class="form-group">
                 <label>Password</label>
-                <input type="password" name="password" placeholder="Enter your password" required>
+                <div class="password-wrapper">
+                    <input type="password" name="password" id="password" placeholder="Enter your password" required>
+                    <button type="button" class="toggle-password" onclick="togglePassword('password', this)">
+                        <svg class="eye-icon" viewBox="0 0 24 24"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"></path><circle cx="12" cy="12" r="3"></circle></svg>
+                    </button>
+                </div>
             </div>
 
             <button type="submit" class="login-btn">Log In</button>

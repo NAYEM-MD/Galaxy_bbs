@@ -8,7 +8,7 @@ import java.sql.ResultSet;
 import java.sql.SQLException;
 
 public class VoteDAO {
-    
+
     // Cast a vote (insert or update)
     // Returns the new total vote count for the post
     public int vote(int userId, int postId, int value) {
@@ -17,11 +17,11 @@ public class VoteDAO {
         String insertSql = "INSERT INTO votes (user_id, post_id, vote_value) VALUES (?, ?, ?)";
         String updateSql = "UPDATE votes SET vote_value = ? WHERE user_id = ? AND post_id = ?";
         String deleteSql = "DELETE FROM votes WHERE user_id = ? AND post_id = ?";
-        
+
         try (Connection conn = DBUtil.getConnection()) {
             int existingValue = 0;
             boolean exists = false;
-            
+
             try (PreparedStatement checkStmt = conn.prepareStatement(checkSql)) {
                 checkStmt.setInt(1, userId);
                 checkStmt.setInt(2, postId);
@@ -32,7 +32,7 @@ public class VoteDAO {
                     }
                 }
             }
-            
+
             if (exists) {
                 if (existingValue == value) {
                     // Clicking same vote again removes it (toggle off)
@@ -59,20 +59,20 @@ public class VoteDAO {
                     insertStmt.executeUpdate();
                 }
             }
-            
+
             return getVoteCount(postId);
-            
+
         } catch (SQLException e) {
             e.printStackTrace();
             return 0;
         }
     }
-    
+
     public int getVoteCount(int postId) {
         String sql = "SELECT SUM(vote_value) as total FROM votes WHERE post_id = ?";
         try (Connection conn = DBUtil.getConnection();
-             PreparedStatement pstmt = conn.prepareStatement(sql)) {
-            
+                PreparedStatement pstmt = conn.prepareStatement(sql)) {
+
             pstmt.setInt(1, postId);
             try (ResultSet rs = pstmt.executeQuery()) {
                 if (rs.next()) {
@@ -84,12 +84,12 @@ public class VoteDAO {
         }
         return 0;
     }
-    
+
     public int getUserVote(int userId, int postId) {
         String sql = "SELECT vote_value FROM votes WHERE user_id = ? AND post_id = ?";
         try (Connection conn = DBUtil.getConnection();
-             PreparedStatement pstmt = conn.prepareStatement(sql)) {
-            
+                PreparedStatement pstmt = conn.prepareStatement(sql)) {
+
             pstmt.setInt(1, userId);
             pstmt.setInt(2, postId);
             try (ResultSet rs = pstmt.executeQuery()) {

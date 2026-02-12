@@ -10,7 +10,7 @@ public class SchemaLoader {
 
     public static void main(String[] args) {
         System.out.println("Initializing Database Schema...");
-        String schemaPath = "docs/schema.sql";
+        String schemaPath = "SQL/schema.sql";
 
         try (Connection conn = DBUtil.getConnection();
              Statement stmt = conn.createStatement();

@@ -1,6 +1,6 @@
 <%@ page language="java" contentType="text/html; charset=UTF-8" pageEncoding="UTF-8"%>
-<%@ page import="java.util.List" %>
-<%@ page import="model.Notification" %>
+<%@ taglib prefix="c" uri="jakarta.tags.core" %>
+<%@ taglib prefix="fn" uri="jakarta.tags.functions" %>
 <!DOCTYPE html>
 <html>
 <head>
@@ -79,34 +79,32 @@
         </div>
         
         <div class="notifications-list">
-            <%
-            List<Notification> notifications = (List<Notification>) request.getAttribute("notifications");
-            if (notifications != null && !notifications.isEmpty()) {
-                for (Notification n : notifications) {
-            %>
-            <a href="${pageContext.request.contextPath}/posts/detail?id=<%= n.getPostId() %>#comment-<%= n.getCommentId() %>" class="notification-link">
-                <div class="notification-item <%= !n.isRead() ? "unread" : "" %>">
+            <c:choose>
+            <c:when test="${not empty notifications}">
+            <c:forEach var="n" items="${notifications}">
+            <a href="${pageContext.request.contextPath}/posts/detail?id=${n.postId}#comment-${n.commentId}" class="notification-link">
+                <div class="notification-item ${!n.read ? 'unread' : ''}">
                     <div class="notification-icon">💬</div>
                     <div class="notification-content">
                         <div>
-                            <strong><%= n.getActorName() %></strong> commented on your post 
-                            <strong>"<%= n.getPostTitle() %>"</strong>
+                            <strong><c:out value="${n.actorName}"/></strong> commented on your post 
+                            <strong>"<c:out value="${n.postTitle}"/>"</strong>
                         </div>
                         <div class="notification-preview">
-                            "<%= n.getCommentContent() != null && n.getCommentContent().length() > 50 ? n.getCommentContent().substring(0, 50) + "..." : n.getCommentContent() %>"
+                            "<c:choose><c:when test="${fn:length(n.commentContent) > 50}"><c:out value="${fn:substring(n.commentContent, 0, 50)}"/>...</c:when><c:otherwise><c:out value="${n.commentContent}"/></c:otherwise></c:choose>"
                         </div>
-                        <div class="notification-time"><%= n.getCreatedAt() %></div>
+                        <div class="notification-time"><c:out value="${n.createdAt}"/></div>
                     </div>
                 </div>
             </a>
-            <%
-                }
-            } else {
-            %>
+            </c:forEach>
+            </c:when>
+            <c:otherwise>
             <div class="notifications-empty">
                 No notifications yet.
             </div>
-            <% } %>
+            </c:otherwise>
+            </c:choose>
         </div>
     </div>
 

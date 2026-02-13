@@ -1,22 +1,14 @@
 <%@ page language="java" contentType="text/html; charset=UTF-8" pageEncoding="UTF-8"%>
-<%@ page import="java.util.List" %>
-<%@ page import="model.Post" %>
+<%@ page import="util.TimeAgoUtil" %>
 <%@ page import="model.Comment" %>
-<%@ page import="model.User" %>
-<%@ page import="java.util.Date" %>
-<%
-    User profileUser = (User) request.getAttribute("profileUser");
-    List<Post> posts = (List<Post>) request.getAttribute("posts");
-    List<Comment> comments = (List<Comment>) request.getAttribute("comments");
-    String tab = (String) request.getAttribute("tab");
-    if (tab == null) tab = "posts";
-    User currentUser = (User) session.getAttribute("user");
-%>
+<%@ taglib prefix="c" uri="jakarta.tags.core" %>
+<%@ taglib prefix="fn" uri="jakarta.tags.functions" %>
+<c:if test="${empty tab}"><c:set var="tab" value="posts" scope="request"/></c:if>
 <!DOCTYPE html>
 <html>
 <head>
     <meta charset="UTF-8">
-    <title><%= profileUser != null ? profileUser.getUsername() : "" %> - Galaxy^bbs</title>
+    <title><c:out value="${not empty profileUser ? profileUser.username : ''}"/> - Galaxy^bbs</title>
     <link rel="stylesheet" href="${pageContext.request.contextPath}/assets/css/reset.css">
     <link rel="stylesheet" href="${pageContext.request.contextPath}/assets/css/theme.css">
     <link rel="stylesheet" href="${pageContext.request.contextPath}/assets/css/main.css?v=2">
@@ -29,97 +21,95 @@
     <jsp:include page="/common/header.jsp" />
 
     <div class="profile-container">
-        <% if (profileUser != null) { %>
+        <c:if test="${not empty profileUser}">
         <div class="profile-header">
-            <h1 class="profile-username"><%= profileUser.getUsername() %></h1>
+            <h1 class="profile-username"><c:out value="${profileUser.username}"/></h1>
             <div class="profile-tabs">
-                <a href="${pageContext.request.contextPath}/profile?username=<%= profileUser.getUsername() %>&tab=posts" class="profile-tab <%= "posts".equals(tab) ? "active" : "" %>">My Posts</a>
-                <a href="${pageContext.request.contextPath}/profile?username=<%= profileUser.getUsername() %>&tab=comments" class="profile-tab <%= "comments".equals(tab) ? "active" : "" %>">My Comments</a>
+                <a href="${pageContext.request.contextPath}/profile?username=<c:out value="${profileUser.username}"/>&tab=posts" class="profile-tab ${tab == 'posts' ? 'active' : ''}">My Posts</a>
+                <a href="${pageContext.request.contextPath}/profile?username=<c:out value="${profileUser.username}"/>&tab=comments" class="profile-tab ${tab == 'comments' ? 'active' : ''}">My Comments</a>
             </div>
         </div>
 
         <div class="profile-content">
-            <% if ("posts".equals(tab)) { %>
+            <c:if test="${tab == 'posts'}">
             <div class="profile-posts">
-                <% if (posts != null && !posts.isEmpty()) { %>
-                    <% for (Post post : posts) { %>
-                <div class="post-card" data-href="${pageContext.request.contextPath}/posts/detail?id=<%= post.getId() %>">
+                <c:choose>
+                <c:when test="${not empty posts}">
+                <c:forEach var="post" items="${posts}">
+                <div class="post-card" data-href="${pageContext.request.contextPath}/posts/detail?id=${post.id}">
                     <div class="vote-column">
-                        <div class="vote-arrow up <%= post.getUserVote() == 1 ? "active" : "" %>" onclick="vote(<%= post.getId() %>, 1, this); event.stopPropagation();">⬆</div>
-                        <div class="vote-count"><%= post.getVoteCount() %></div>
-                        <div class="vote-arrow down <%= post.getUserVote() == -1 ? "active" : "" %>" onclick="vote(<%= post.getId() %>, -1, this); event.stopPropagation();">⬇</div>
+                        <div class="vote-arrow up ${post.userVote == 1 ? 'active' : ''}" onclick="vote(${post.id}, 1, this); event.stopPropagation();">⬆</div>
+                        <div class="vote-count">${post.voteCount}</div>
+                        <div class="vote-arrow down ${post.userVote == -1 ? 'active' : ''}" onclick="vote(${post.id}, -1, this); event.stopPropagation();">⬇</div>
                     </div>
                     <div class="post-content">
-                        <% if (currentUser != null && currentUser.getId() == post.getUserId()) { %>
+                        <c:if test="${not empty sessionScope.user and sessionScope.user.id == post.userId}">
                         <div class="post-menu">
                             <button type="button" class="post-menu-trigger" aria-label="Post options" aria-haspopup="true" aria-expanded="false">⋯</button>
                             <div class="post-menu-dropdown" role="menu" aria-hidden="true">
                                 <form method="post" action="${pageContext.request.contextPath}/posts/delete" class="post-menu-form">
-                                    <input type="hidden" name="id" value="<%= post.getId() %>">
+                                    <input type="hidden" name="id" value="${post.id}">
                                     <button type="submit" class="post-menu-item post-menu-item-delete" role="menuitem">Delete Post</button>
                                 </form>
                             </div>
                         </div>
-                        <% } %>
+                        </c:if>
                         <div class="post-meta">
-                            <span class="community-name">r/<%= post.getTagName() != null ? post.getTagName() : "general" %></span>
-                            <span class="posted-by">Posted by <%= post.getAuthorName() %></span>
+                            <span class="community-name">r/<c:out value="${empty post.tagName ? 'general' : post.tagName}"/></span>
+                            <span class="posted-by">Posted by <c:out value="${post.authorName}"/></span>
                         </div>
-                        <h3 class="post-title"><%= post.getTitle() %></h3>
+                        <h3 class="post-title"><c:out value="${post.title}"/></h3>
                         <div class="post-preview">
-                            <%= post.getContent() != null ? (post.getContent().length() > 200 ? post.getContent().substring(0, 200) + "..." : post.getContent()) : "" %>
+                            <c:choose><c:when test="${empty post.content}"></c:when><c:when test="${fn:length(post.content) > 200}"><c:out value="${fn:substring(post.content, 0, 200)}"/>...</c:when><c:otherwise><c:out value="${post.content}"/></c:otherwise></c:choose>
                         </div>
-                        <% if (post.getMediaUrl() != null && !"poll".equals(post.getMediaType())) { %>
+                        <c:if test="${not empty post.mediaUrl and post.mediaType != 'poll'}">
                         <div class="post-media">
-                            <% if ("image".equals(post.getMediaType())) { %>
-                                <img src="<%= post.getMediaUrl() %>" alt="" class="post-media-img">
-                            <% } else if ("video".equals(post.getMediaType())) { %>
-                                <video src="<%= post.getMediaUrl() %>" controls class="post-media-video"></video>
-                            <% } %>
+                            <c:if test="${post.mediaType == 'image'}">
+                                <img src="<c:out value="${post.mediaUrl}"/>" alt="" class="post-media-img">
+                            </c:if>
+                            <c:if test="${post.mediaType == 'video'}">
+                                <video src="<c:out value="${post.mediaUrl}"/>" controls class="post-media-video"></video>
+                            </c:if>
                         </div>
-                        <% } %>
+                        </c:if>
                         <div class="post-footer">
                             <div class="footer-btn">💬 Comments</div>
                         </div>
                     </div>
                 </div>
-                    <% } %>
-                <% } else { %>
+                </c:forEach>
+                </c:when>
+                <c:otherwise>
                 <div class="profile-empty">No posts yet.</div>
-                <% } %>
+                </c:otherwise>
+                </c:choose>
             </div>
-            <% } else { %>
+            </c:if>
+            <c:if test="${tab == 'comments'}">
             <div class="profile-comments">
-                <% if (comments != null && !comments.isEmpty()) { %>
-                    <% for (Comment comment : comments) { %>
+                <c:choose>
+                <c:when test="${not empty comments}">
+                <c:forEach var="comment" items="${comments}">
                 <div class="comment-card">
                     <div class="comment-card-meta">
-                        <a href="${pageContext.request.contextPath}/posts/detail?id=<%= comment.getPostId() %>" class="comment-post-link"><%= comment.getPostTitle() != null ? comment.getPostTitle() : "Post" %></a>
+                        <a href="${pageContext.request.contextPath}/posts/detail?id=${comment.postId}" class="comment-post-link"><c:out value="${empty comment.postTitle ? 'Post' : comment.postTitle}"/></a>
                     </div>
-                    <div class="comment-card-body"><%= comment.getContent() != null ? comment.getContent() : "" %></div>
-                    <div class="comment-card-time"><%
-    Date ca = comment.getCreatedAt();
-    if (ca != null) {
-        long diff = System.currentTimeMillis() - ca.getTime();
-        long sec = diff / 1000, min = sec / 60, hr = min / 60, day = hr / 24;
-        if (day > 0) out.print(day + "d ago");
-        else if (hr > 0) out.print(hr + "h ago");
-        else if (min > 0) out.print(min + "m ago");
-        else if (sec >= 5) out.print(sec + "s ago");
-        else out.print("just now");
-    } else out.print("");
-%></div>
+                    <div class="comment-card-body"><c:out value="${comment.content}"/></div>
+                    <div class="comment-card-time"><% Comment _c = (Comment)pageContext.findAttribute("comment"); out.print(_c != null && _c.getCreatedAt() != null ? TimeAgoUtil.format(_c.getCreatedAt()) : ""); %></div>
                 </div>
-                    <% } %>
-                <% } else { %>
+                </c:forEach>
+                </c:when>
+                <c:otherwise>
                 <div class="profile-empty">No comments yet.</div>
-                <% } %>
+                </c:otherwise>
+                </c:choose>
             </div>
-            <% } %>
+            </c:if>
         </div>
-        <% } else { %>
+        </c:if>
+        <c:if test="${empty profileUser}">
         <div class="profile-empty">User not found.</div>
-        <% } %>
+        </c:if>
     </div>
 
     <script src="${pageContext.request.contextPath}/assets/js/vote.js"></script>

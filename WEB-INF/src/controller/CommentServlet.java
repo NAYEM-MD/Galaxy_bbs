@@ -34,8 +34,15 @@ public class CommentServlet extends HttpServlet {
             
             String content = request.getParameter("content");
             int postId = Integer.parseInt(request.getParameter("postId"));
-            
-            Comment comment = new Comment(content, postId, user.getId());
+            Integer parentId = null;
+            String parentIdStr = request.getParameter("parentId");
+            if (parentIdStr != null && !parentIdStr.trim().isEmpty()) {
+                try {
+                    parentId = Integer.parseInt(parentIdStr.trim());
+                } catch (NumberFormatException ignored) {}
+            }
+
+            Comment comment = new Comment(content, postId, parentId, user.getId());
             commentDAO.save(comment);
             
             // Create notification if the commenter is not the post author
@@ -58,7 +65,36 @@ public class CommentServlet extends HttpServlet {
             int newCommentId = comment.getId();
             String anchor = newCommentId > 0 ? "#comment-" + newCommentId : "";
             response.sendRedirect(request.getContextPath() + "/posts/detail?id=" + postId + anchor);
+        } else if ("/delete".equals(path)) {
+            HttpSession session = request.getSession(false);
+            if (session == null || session.getAttribute("user") == null) {
+                response.sendRedirect(request.getContextPath() + "/auth/login");
+                return;
+            }
+            User user = (User) session.getAttribute("user");
+            String commentIdStr = request.getParameter("commentId");
+            if (commentIdStr == null || commentIdStr.trim().isEmpty()) {
+                response.sendRedirect(request.getContextPath() + "/posts/feed");
+                return;
+            }
+            int commentId;
+            try {
+                commentId = Integer.parseInt(commentIdStr.trim());
+            } catch (NumberFormatException e) {
+                response.sendRedirect(request.getContextPath() + "/posts/feed");
+                return;
+            }
+            Comment comment = commentDAO.findById(commentId);
+            if (comment == null) {
+                response.sendRedirect(request.getContextPath() + "/posts/feed");
+                return;
+            }
+            if (comment.getUserId() != user.getId()) {
+                response.sendRedirect(request.getContextPath() + "/posts/detail?id=" + comment.getPostId());
+                return;
+            }
+            commentDAO.delete(commentId);
+            response.sendRedirect(request.getContextPath() + "/posts/detail?id=" + comment.getPostId());
         }
     }
 }
-//yo

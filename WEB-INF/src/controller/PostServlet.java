@@ -162,13 +162,8 @@ public class PostServlet extends HttpServlet {
             post.setPoll(poll);
             postDAO.save(post);
 
-            // Redirect to the new post's detail page so the user can see their post (and image) right away
-            int newId = post.getId();
-            if (newId > 0) {
-                response.sendRedirect(request.getContextPath() + "/posts/detail?id=" + newId);
-            } else {
-                response.sendRedirect(request.getContextPath() + "/posts/feed");
-            }
+            // Redirect to the feed after posting
+            response.sendRedirect(request.getContextPath() + "/posts/feed");
         }
     }
     

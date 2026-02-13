@@ -30,7 +30,14 @@ public class Poll implements Serializable {
 
     public List<PollOption> getOptions() { return options; }
     public void setOptions(List<PollOption> options) { this.options = options; }
-    
+
+    /** Sum of vote counts across all options (for JSTL/EL). */
+    public int getTotalVotes() {
+        int sum = 0;
+        for (PollOption o : options) sum += o.getVoteCount();
+        return sum;
+    }
+
     public void addOption(PollOption option) {
         this.options.add(option);
     }

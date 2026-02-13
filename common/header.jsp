@@ -1,6 +1,7 @@
 <%@ page language="java" contentType="text/html; charset=UTF-8" pageEncoding="UTF-8"%>
 <%@ page import="model.User" %>
 <%@ page import="dao.NotificationDAO" %>
+<%@ taglib prefix="c" uri="jakarta.tags.core" %>
 <%
     User currentUser = (User) session.getAttribute("user");
     int unreadCount = 0;
@@ -8,6 +9,7 @@
         NotificationDAO notificationDAO = new NotificationDAO();
         unreadCount = notificationDAO.getUnreadCount(currentUser.getId());
     }
+    request.setAttribute("unreadCount", Integer.valueOf(unreadCount));
 %>
 <header class="app-header">
     <div class="header-left">
@@ -39,26 +41,26 @@
         </a>
         
         <div class="user-actions">
-            <% if (currentUser != null) { %>
+            <c:if test="${not empty sessionScope.user}">
             <a href="${pageContext.request.contextPath}/notifications" class="notification-bell-btn" title="Notifications">
                 <svg viewBox="0 0 448 512" class="bell"><path d="M224 0c-17.7 0-32 14.3-32 32V49.9C119.5 61.4 64 124.2 64 200v33.4c0 45.4-15.5 89.5-43.8 124.9L5.3 377c-5.8 7.2-6.9 17.1-2.9 25.4S14.8 416 24 416H424c9.2 0 17.6-5.3 21.6-13.6s2.9-18.2-2.9-25.4l-14.9-18.6C399.5 322.9 384 278.8 384 233.4V200c0-75.8-55.5-138.6-128-150.1V32c0-17.7-14.3-32-32-32zm0 96h8c57.4 0 104 46.6 104 104v33.4c0 47.9 13.9 94.6 39.7 134.6H72.3C98.1 328 112 281.3 112 233.4V200c0-57.4 46.6-104 104-104h8zm64 352H224 160c0 17 6.7 33.3 18.7 45.3s28.3 18.7 45.3 18.7s33.3-6.7 45.3-18.7s18.7-28.3 18.7-45.3z"></path></svg>
-                <span id="notification-badge" class="notification-badge" style="<%= unreadCount == 0 ? "display:none" : "" %>"><%= unreadCount %></span>
+                <span id="notification-badge" class="notification-badge" style="${unreadCount == 0 ? 'display:none' : ''}"><c:out value="${unreadCount}"/></span>
             </a>
 
             <!-- User Dropdown -->
             <div class="user-menu-container">
             <button id="user-menu-btn" class="user-menu-btn" onclick="toggleUserMenu(event)">
                     <div class="user-avatar-small">
-                        <img src="${pageContext.request.contextPath}/assets/img/default-avatar.png" onerror="this.src='https://www.redditstatic.com/avatars/avatar_default_02_0079D3.png'" alt="<%= currentUser.getUsername() %>">
+                        <img src="${pageContext.request.contextPath}/assets/img/default-avatar.png" onerror="this.src='https://www.redditstatic.com/avatars/avatar_default_02_0079D3.png'" alt="<c:out value="${sessionScope.user.username}"/>">
                     </div>
                     <div class="user-info-brief">
-                        <span class="username-text"><%= currentUser.getUsername() %></span>
+                        <span class="username-text"><c:out value="${sessionScope.user.username}"/></span>
                     </div>
                     <span class="dropdown-arrow">▼</span>
                 </button>
 
                 <div id="user-dropdown" class="user-dropdown-content">
-                    <a href="${pageContext.request.contextPath}/profile?username=<%= currentUser.getUsername() %>" class="dropdown-item">
+                    <a href="${pageContext.request.contextPath}/profile?username=<c:out value="${sessionScope.user.username}"/>" class="dropdown-item">
                         <span class="item-icon">
                             <!-- Simple Profile Icon -->
                             <svg viewBox="0 0 20 20" xmlns="http://www.w3.org/2000/svg" class="menu-icon"><path d="M10 9a3 3 0 100-6 3 3 0 000 6zm-7 9a7 7 0 1114 0H3z"/></svg>
@@ -97,10 +99,11 @@
                     </a>
                 </div>
             </div>
-            <% } else { %>
+            </c:if>
+            <c:if test="${empty sessionScope.user}">
                 <a href="${pageContext.request.contextPath}/auth/login" class="btn-primary btn-login-margin">Log In</a>
                 <a href="${pageContext.request.contextPath}/auth/register" class="btn-secondary">Sign Up</a>
-            <% } %>
+            </c:if>
         </div>
     </div>
 </header>
@@ -112,7 +115,7 @@
 
 <script>
     // Expose app context path for JS modules (vote.js, poll.js, etc.)
-    window.appContextPath = "<%= request.getContextPath() %>";
+    window.appContextPath = "${pageContext.request.contextPath}";
 
     function toggleUserMenu(event) {
         event.stopPropagation();
@@ -149,7 +152,7 @@
     (function() {
         var badge = document.getElementById("notification-badge");
         if (!badge) return;
-        var ctx = "<%= request.getContextPath() %>";
+        var ctx = "${pageContext.request.contextPath}";
         function fetchCount() {
             fetch(ctx + "/notifications/count", { credentials: "same-origin" })
                 .then(function(r) { return r.json(); })

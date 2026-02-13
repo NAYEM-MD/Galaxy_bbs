@@ -1,5 +1,6 @@
 <%@ page language="java" contentType="text/html; charset=UTF-8"
 pageEncoding="UTF-8" isErrorPage="true"%>
+<%@ taglib prefix="c" uri="jakarta.tags.core" %>
 <!DOCTYPE html>
 <html>
   <head>
@@ -15,21 +16,17 @@ pageEncoding="UTF-8" isErrorPage="true"%>
   </head>
   <body>
     <h1>Something went wrong</h1>
-    <% if (exception != null) { %>
-    <p><strong>Exception:</strong> <%= exception.getClass().getName() %></p>
-    <p><strong>Message:</strong> <%= exception.getMessage() %></p>
-    <% Throwable cause = exception.getCause(); if (cause != null) { %>
+    <c:if test="${not empty pageContext.exception}">
+    <p><strong>Exception:</strong> <c:out value="${pageContext.exception['class'].name}"/></p>
+    <p><strong>Message:</strong> <c:out value="${pageContext.exception.message}"/></p>
+    <c:if test="${not empty pageContext.exception.cause}">
     <p>
-      <strong>Caused by:</strong> <%= cause.getClass().getName() %>: <%=
-      cause.getMessage() %>
+      <strong>Caused by:</strong> <c:out value="${pageContext.exception.cause['class'].name}"/>: <c:out value="${pageContext.exception.cause.message}"/>
     </p>
-    <% } %>
-    <pre>
-<%
-        java.io.PrintWriter pw = new java.io.PrintWriter(out);
-        exception.printStackTrace(pw);
-    %></pre
-    >
-    <% } %>
+    </c:if>
+    <pre><%
+        if (exception != null) { exception.printStackTrace(new java.io.PrintWriter(out)); }
+    %></pre>
+    </c:if>
   </body>
 </html>

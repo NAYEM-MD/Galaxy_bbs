@@ -18,7 +18,9 @@
         </div>
         <c:if test="${not empty sessionScope.user}">
         <div class="comment-actions-bar">
+            <c:if test="${depth == 0}">
             <button type="button" class="comment-action-btn reply-btn" data-parent-id="${currentComment.id}" data-author="<c:out value="${currentComment.authorName}"/>">Reply</button>
+            </c:if>
             <c:if test="${sessionScope.user.id == currentComment.userId}">
             <form action="${pageContext.request.contextPath}/comments/delete" method="post" class="comment-delete-form">
                 <input type="hidden" name="commentId" value="${currentComment.id}">
@@ -26,6 +28,7 @@
             </form>
             </c:if>
         </div>
+        <c:if test="${depth == 0}">
         <div class="comment-reply-form-wrapper" id="reply-form-${currentComment.id}" style="display: none;">
             <form action="${pageContext.request.contextPath}/comments/create" method="post" class="comment-reply-form">
                 <input type="hidden" name="postId" value="${post.id}">
@@ -37,6 +40,7 @@
                 </div>
             </form>
         </div>
+        </c:if>
         </c:if>
     </div>
     <c:if test="${not empty currentComment.replies}">

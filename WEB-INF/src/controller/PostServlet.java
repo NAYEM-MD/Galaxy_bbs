@@ -13,7 +13,9 @@ import model.PollOption;
 import java.io.File;
 import java.io.IOException;
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 import java.util.UUID;
 import jakarta.servlet.ServletException;
 import jakarta.servlet.annotation.MultipartConfig;
@@ -217,21 +219,43 @@ public class PostServlet extends HttpServlet {
 
     /** Builds a tree of comments (roots with nested replies) from a flat list. */
     private List<Comment> buildCommentTree(List<Comment> flat) {
+        Map<Integer, Comment> idToComment = new HashMap<>();
+        for (Comment c : flat) {
+            idToComment.put(c.getId(), c);
+        }
         List<Comment> roots = new ArrayList<>();
         for (Comment c : flat) {
-            if (c.getParentId() == null) {
+            Integer pid = c.getParentId();
+            if (pid == null) {
                 roots.add(c);
-            }
-        }
-        for (Comment c : flat) {
-            if (c.getParentId() == null) continue;
-            for (Comment parent : flat) {
-                if (parent.getId() == c.getParentId()) {
+            } else {
+                Comment parent = idToComment.get(pid);
+                if (parent != null) {
                     parent.getReplies().add(c);
-                    break;
+                } else {
+                    roots.add(c);
                 }
             }
         }
+        // Flatten to one level of reply: all replies under a main comment show at same indent (no sub-replies)
+        for (Comment root : roots) {
+            List<Comment> flatReplies = flattenReplies(root.getReplies());
+            for (Comment c : flatReplies) {
+                c.setReplies(new ArrayList<>());
+            }
+            root.setReplies(flatReplies);
+        }
         return roots;
+    }
+
+    /** Collects all descendants in order (depth-first) for "1 line of reply" display. */
+    private List<Comment> flattenReplies(List<Comment> replies) {
+        if (replies == null || replies.isEmpty()) return new ArrayList<>();
+        List<Comment> out = new ArrayList<>();
+        for (Comment c : replies) {
+            out.add(c);
+            out.addAll(flattenReplies(c.getReplies()));
+        }
+        return out;
     }
 }

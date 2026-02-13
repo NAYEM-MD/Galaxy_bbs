@@ -404,7 +404,7 @@
     border-left: none;
 }
 
-/* Each reply level indented to the right as a sub-line under the parent */
+/* Each reply level indented to the right as a sub-line under the parent (cumulative) */
 .comment-thread-item.comment-depth-1 {
     margin-left: 28px;
     margin-top: 6px;
@@ -413,15 +413,21 @@
 }
 
 .comment-thread-item.comment-depth-2 {
-    margin-left: 56px;
+    margin-left: 28px;
     margin-top: 6px;
     padding-left: 14px;
     border-left: 2px solid var(--border-color);
 }
 
-.comment-thread-item.comment-depth-3,
+.comment-thread-item.comment-depth-3 {
+    margin-left: 28px;
+    margin-top: 6px;
+    padding-left: 14px;
+    border-left: 2px solid var(--border-color);
+}
+
 .comment-thread-item.comment-depth-4 {
-    margin-left: 84px;
+    margin-left: 28px;
     margin-top: 6px;
     padding-left: 14px;
     border-left: 2px solid var(--border-color);

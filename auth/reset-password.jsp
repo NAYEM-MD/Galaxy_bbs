@@ -1,4 +1,5 @@
 <%@ page language="java" contentType="text/html; charset=UTF-8" pageEncoding="UTF-8"%>
+<%@ taglib prefix="c" uri="jakarta.tags.core" %>
 <!DOCTYPE html>
 <html>
 <head>
@@ -18,12 +19,12 @@
             <p class="subtitle">Choose a new password</p>
         </div>
 
-        <% if (request.getAttribute("errorMsg") != null) { %>
-            <p class="error-msg"><%= request.getAttribute("errorMsg") %></p>
-        <% } %>
+        <c:if test="${not empty errorMsg}">
+            <p class="error-msg"><c:out value="${errorMsg}"/></p>
+        </c:if>
 
         <form action="${pageContext.request.contextPath}/auth/reset-password" method="post">
-            <input type="hidden" name="token" value="<%= request.getAttribute("token") != null ? request.getAttribute("token") : request.getParameter("token") %>">
+            <input type="hidden" name="token" value="${not empty token ? token : param.token}">
 
             <div class="form-group">
                 <label>New Password</label>

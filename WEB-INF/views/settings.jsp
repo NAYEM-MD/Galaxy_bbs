@@ -1,14 +1,6 @@
 <%@ page language="java" contentType="text/html; charset=UTF-8" pageEncoding="UTF-8"%>
-<%@ page import="model.User" %>
-<%
-    User user = (User) request.getAttribute("user");
-    if (user == null) {
-        response.sendRedirect(request.getContextPath() + "/auth/login");
-        return;
-    }
-    String message = (String) request.getAttribute("message");
-    String error = (String) request.getAttribute("error");
-%>
+<%@ taglib prefix="c" uri="jakarta.tags.core" %>
+<c:if test="${empty user}"><c:redirect url="${pageContext.request.contextPath}/auth/login"/></c:if>
 <!DOCTYPE html>
 <html>
 <head>
@@ -27,12 +19,12 @@
     <div class="settings-container">
         <h1 class="settings-title">Settings</h1>
 
-        <% if (message != null && !message.isEmpty()) { %>
-        <p class="settings-message"><%= message %></p>
-        <% } %>
-        <% if (error != null && !error.isEmpty()) { %>
-        <p class="settings-error"><%= error %></p>
-        <% } %>
+        <c:if test="${not empty message}">
+        <p class="settings-message"><c:out value="${message}"/></p>
+        </c:if>
+        <c:if test="${not empty error}">
+        <p class="settings-error"><c:out value="${error}"/></p>
+        </c:if>
 
         <div class="settings-section">
             <h2 class="settings-section-title">Change Email Address</h2>
@@ -40,7 +32,7 @@
                 <input type="hidden" name="action" value="updateEmail">
                 <div class="form-group">
                     <label for="newEmail">New email</label>
-                    <input type="email" id="newEmail" name="newEmail" value="<%= user.getEmail() != null ? user.getEmail() : "" %>" placeholder="Enter new email" required class="settings-input">
+                    <input type="email" id="newEmail" name="newEmail" value="<c:out value="${user.email}"/>" placeholder="Enter new email" required class="settings-input">
                 </div>
                 <button type="submit" class="btn-primary settings-btn">Update Email</button>
             </form>
@@ -48,7 +40,7 @@
 
         <div class="settings-section">
             <h2 class="settings-section-title">Username</h2>
-            <p class="settings-readonly"><%= user.getUsername() != null ? user.getUsername() : "" %> <span class="settings-hint">(cannot be changed)</span></p>
+            <p class="settings-readonly"><c:out value="${user.username}"/> <span class="settings-hint">(cannot be changed)</span></p>
         </div>
 
         <div class="settings-section">

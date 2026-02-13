@@ -1,7 +1,8 @@
 @echo off
 REM ============================================================
 REM Compile Galaxy BBS Java sources into WEB-INF\classes
-REM Run this from the project root (e.g. c:\ii\Galaxy_bbs)
+REM Run this from the project root (e.g. c:\tomcat10\webapps\Galaxy_bbs)
+REM JSPs use JSTL (jars in WEB-INF\lib); this compiles servlets/models/DAOs.
 REM
 REM Optional: DB connectivity test (Oracle)
 REM   compile_classes.bat dbtest [DB_URL] [DB_USER] [DB_PASSWORD]
@@ -32,7 +33,7 @@ if not exist "%CATALINA_HOME%\lib\servlet-api.jar" (
 set LIB=%PROJECT_ROOT%\WEB-INF\lib
 set SRC=%PROJECT_ROOT%\WEB-INF\src
 set OUT=%PROJECT_ROOT%\WEB-INF\classes
-set CP=%LIB%\jakarta.activation-2.0.1.jar;%LIB%\jakarta.mail-2.0.1.jar;%LIB%\ojdbc8.jar;%CATALINA_HOME%\lib\servlet-api.jar
+set CP=%LIB%\jakarta.activation-2.0.1.jar;%LIB%\jakarta.mail-2.0.1.jar;%LIB%\ojdbc8.jar;%LIB%\jakarta.servlet.jsp.jstl-api-3.0.0.jar;%CATALINA_HOME%\lib\servlet-api.jar
 
 if not exist "%OUT%" mkdir "%OUT%"
 

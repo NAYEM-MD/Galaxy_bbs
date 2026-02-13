@@ -77,7 +77,7 @@
                     </c:if>
 
                     <div class="post-footer">
-                        <div class="footer-btn">💬 ${not empty comments ? fn:length(comments) : 0} Comments</div>
+                        <div class="footer-btn">💬 ${commentCount != null ? commentCount : 0} Comments</div>
                     </div>
                 </div>
             </div>
@@ -88,7 +88,7 @@
                     <div class="comment-as">
                         Comment as <a href="#"><c:out value="${sessionScope.user.username}"/></a>
                     </div>
-                    <form action="${pageContext.request.contextPath}/comments/create" method="post">
+                    <form action="${pageContext.request.contextPath}/comments/create" method="post" id="main-comment-form">
                         <input type="hidden" name="postId" value="${post.id}">
                         <textarea name="content" class="comment-textarea" placeholder="What are your thoughts?"></textarea>
                         <div class="comment-actions">
@@ -103,17 +103,11 @@
                     <p style="margin-bottom: 20px;"><a href="${pageContext.request.contextPath}/auth/login" style="color:#0079d3;">Log in</a> to comment.</p>
                 </c:if>
 
-                <div class="comments-list">
-                    <c:forEach var="comment" items="${comments}">
-                    <div class="comment" id="comment-${comment.id}">
-                        <div class="comment-header">
-                            <span class="comment-author">u/<c:out value="${comment.authorName}"/></span>
-                            <span class="comment-time"><% Comment _c = (Comment)pageContext.findAttribute("comment"); out.print(_c != null && _c.getCreatedAt() != null ? TimeAgoUtil.format(_c.getCreatedAt()) : ""); %></span>
-                        </div>
-                        <div class="comment-body">
-                            <c:out value="${comment.content}"/>
-                        </div>
-                    </div>
+                <div class="comments-list comments-thread">
+                    <c:forEach var="root" items="${commentTree}">
+                        <c:set var="currentComment" value="${root}" scope="request"/>
+                        <c:set var="commentDepth" value="${0}" scope="request"/>
+                        <jsp:include page="/WEB-INF/views/posts/_commentNode.jsp"/>
                     </c:forEach>
                 </div>
             </div>
@@ -127,5 +121,29 @@
 
     <script src="${pageContext.request.contextPath}/assets/js/vote.js"></script>
     <script src="${pageContext.request.contextPath}/assets/js/poll.js"></script>
+    <script>
+    (function() {
+        document.querySelectorAll('.reply-btn').forEach(function(btn) {
+            btn.addEventListener('click', function() {
+                var parentId = this.getAttribute('data-parent-id');
+                var formWrap = document.getElementById('reply-form-' + parentId);
+                if (!formWrap) return;
+                document.querySelectorAll('.comment-reply-form-wrapper').forEach(function(w) { w.style.display = 'none'; });
+                var isOpen = formWrap.style.display === 'block';
+                formWrap.style.display = isOpen ? 'none' : 'block';
+                if (formWrap.style.display === 'block') {
+                    var ta = formWrap.querySelector('.comment-reply-textarea');
+                    if (ta) { ta.focus(); ta.value = ''; }
+                }
+            });
+        });
+        document.querySelectorAll('.comment-reply-cancel').forEach(function(btn) {
+            btn.addEventListener('click', function() {
+                var formWrap = this.closest('.comment-reply-form-wrapper');
+                if (formWrap) formWrap.style.display = 'none';
+            });
+        });
+    })();
+    </script>
 </body>
 </html>

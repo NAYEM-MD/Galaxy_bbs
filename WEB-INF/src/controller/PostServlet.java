@@ -12,6 +12,7 @@ import model.PollOption;
 
 import java.io.File;
 import java.io.IOException;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.UUID;
 import jakarta.servlet.ServletException;
@@ -69,9 +70,11 @@ public class PostServlet extends HttpServlet {
                 if (idStr != null) {
                     int id = Integer.parseInt(idStr);
                     Post post = postDAO.findById(id, currentUserId);
-                    List<Comment> comments = commentDAO.findByPostId(id);
+                    List<Comment> flatComments = commentDAO.findByPostId(id);
+                    List<Comment> commentTree = buildCommentTree(flatComments);
                     request.setAttribute("post", post);
-                    request.setAttribute("comments", comments);
+                    request.setAttribute("commentTree", commentTree);
+                    request.setAttribute("commentCount", flatComments.size());
                     request.getRequestDispatcher("/WEB-INF/views/posts/detail.jsp").forward(request, response);
                 } else {
                     response.sendRedirect(request.getContextPath() + "/posts/feed");
@@ -162,13 +165,8 @@ public class PostServlet extends HttpServlet {
             post.setPoll(poll);
             postDAO.save(post);
 
-            // Redirect to the new post's detail page so the user can see their post (and image) right away
-            int newId = post.getId();
-            if (newId > 0) {
-                response.sendRedirect(request.getContextPath() + "/posts/detail?id=" + newId);
-            } else {
-                response.sendRedirect(request.getContextPath() + "/posts/feed");
-            }
+            // Redirect to the feed after posting
+            response.sendRedirect(request.getContextPath() + "/posts/feed");
         }
     }
     
@@ -215,5 +213,25 @@ public class PostServlet extends HttpServlet {
             }
         }
         return null;
+    }
+
+    /** Builds a tree of comments (roots with nested replies) from a flat list. */
+    private List<Comment> buildCommentTree(List<Comment> flat) {
+        List<Comment> roots = new ArrayList<>();
+        for (Comment c : flat) {
+            if (c.getParentId() == null) {
+                roots.add(c);
+            }
+        }
+        for (Comment c : flat) {
+            if (c.getParentId() == null) continue;
+            for (Comment parent : flat) {
+                if (parent.getId() == c.getParentId()) {
+                    parent.getReplies().add(c);
+                    break;
+                }
+            }
+        }
+        return roots;
     }
 }

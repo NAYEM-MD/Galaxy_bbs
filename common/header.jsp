@@ -51,7 +51,14 @@
             <div class="user-menu-container">
             <button id="user-menu-btn" class="user-menu-btn" onclick="toggleUserMenu(event)">
                     <div class="user-avatar-small">
-                        <img src="${pageContext.request.contextPath}/assets/img/default-avatar.png" onerror="this.src='https://www.redditstatic.com/avatars/avatar_default_02_0079D3.png'" alt="<c:out value="${sessionScope.user.username}"/>">
+                        <c:choose>
+                            <c:when test="${not empty sessionScope.user.profileImage}">
+                                <img src="${pageContext.request.contextPath}/${sessionScope.user.profileImage}" onerror="this.onerror=null; this.src='${pageContext.request.contextPath}/assets/img/default-avatar.svg';" alt="<c:out value="${sessionScope.user.username}"/>">
+                            </c:when>
+                            <c:otherwise>
+                                <img src="${pageContext.request.contextPath}/assets/img/default-avatar.svg" alt="<c:out value="${sessionScope.user.username}"/>">
+                            </c:otherwise>
+                        </c:choose>
                     </div>
                     <div class="user-info-brief">
                         <span class="username-text"><c:out value="${sessionScope.user.username}"/></span>

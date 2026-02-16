@@ -175,3 +175,8 @@ INSERT INTO tags (name) VALUES ('Technology');
 INSERT INTO tags (name) VALUES ('Gaming');
 INSERT INTO tags (name) VALUES ('Music');
 INSERT INTO tags (name) VALUES ('News');
+
+-- ---------------------------------------------------------------------------
+-- For existing databases created before profile_image was added, run once:
+--   ALTER TABLE users ADD profile_image VARCHAR2(500);
+-- ---------------------------------------------------------------------------

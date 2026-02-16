@@ -9,6 +9,8 @@ public class User implements Serializable {
     private String username;
     private String password;
     private String email;
+    /** Relative path for profile image under webapp (e.g. uploads/profiles/xxx.jpg). Null = use default avatar. */
+    private String profileImage;
 
     public User() {}
 
@@ -29,4 +31,7 @@ public class User implements Serializable {
 
     public String getEmail() { return email; }
     public void setEmail(String email) { this.email = email; }
+
+    public String getProfileImage() { return profileImage; }
+    public void setProfileImage(String profileImage) { this.profileImage = profileImage; }
 }

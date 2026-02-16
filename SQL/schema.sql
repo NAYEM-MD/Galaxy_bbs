@@ -84,6 +84,7 @@ CREATE TABLE users (
     username VARCHAR2(50) NOT NULL UNIQUE,
     email VARCHAR2(100) NOT NULL UNIQUE,
     password VARCHAR2(255) NOT NULL,
+    profile_image VARCHAR2(500),
     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
 );
 

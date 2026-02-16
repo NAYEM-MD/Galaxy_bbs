@@ -50,15 +50,18 @@ if "!CP:~0,1!"==";" set "CP=!CP:~1!"
 
 if not exist "%OUT%" mkdir "%OUT%"
 
-echo Compiling Java sources to WEB-INF\classes ...
 REM javac does NOT expand *.java globs on Windows. Build an @argfile of sources.
 set "SRC_LIST=%TEMP%\galaxy_bbs_sources_%RANDOM%%RANDOM%.txt"
 if exist "%SRC_LIST%" del /q "%SRC_LIST%"
-
 for /r "%SRC%" %%F in (*.java) do (
   echo %%F>>"%SRC_LIST%"
 )
+if not exist "%SRC_LIST%" (
+    echo ERROR: No .java files found under %SRC%
+    exit /b 1
+)
 
+echo Compiling Java sources to WEB-INF\classes ...
 javac -encoding UTF-8 -d "%OUT%" -cp "%CP%" -sourcepath "%SRC%" @"%SRC_LIST%"
 set "JAVAC_EXIT=%ERRORLEVEL%"
 
@@ -66,7 +69,7 @@ del /q "%SRC_LIST%" >nul 2>&1
 
 if %JAVAC_EXIT% equ 0 (
     echo.
-    echo Done. WEB-INF\classes has been built.
+    echo Done. WEB-INF\classes built successfully.
 ) else (
     echo.
     echo Compilation failed. Check errors above.

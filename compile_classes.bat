@@ -15,7 +15,7 @@ REM   set DB_PASSWORD=pro
 REM   compile_classes.bat dbtest
 REM ============================================================
 
-setlocal
+setlocal enabledelayedexpansion
 
 set "PROJECT_ROOT=%~dp0"
 REM %~dp0 ends with a backslash; remove it for consistency
@@ -24,16 +24,29 @@ cd /d "%PROJECT_ROOT%"
 
 REM Set Tomcat home - edit this if Tomcat is elsewhere
 if "%CATALINA_HOME%"=="" set CATALINA_HOME=C:\tomcat10
-if not exist "%CATALINA_HOME%\lib\servlet-api.jar" (
-    echo ERROR: servlet-api.jar not found. Set CATALINA_HOME or edit this script.
-    echo Example: set CATALINA_HOME=C:\tomcat10
+set "TC_LIB=%CATALINA_HOME%\lib"
+if not exist "%TC_LIB%" (
+    echo ERROR: Tomcat lib not found: %TC_LIB%
+    echo Set CATALINA_HOME or edit this script. Example: set CATALINA_HOME=C:\tomcat10
+    exit /b 1
+)
+REM Tomcat 9: servlet-api.jar; Tomcat 10+: jakarta.servlet-api-*.jar
+set "SERVLET_JAR="
+if exist "%TC_LIB%\servlet-api.jar" set "SERVLET_JAR=%TC_LIB%\servlet-api.jar"
+if "%SERVLET_JAR%"=="" for %%j in ("%TC_LIB%\jakarta.servlet-api*.jar") do set "SERVLET_JAR=%%j"
+if "%SERVLET_JAR%"=="" (
+    echo ERROR: No servlet-api.jar or jakarta.servlet-api*.jar in %TC_LIB%
     exit /b 1
 )
 
 set LIB=%PROJECT_ROOT%\WEB-INF\lib
 set SRC=%PROJECT_ROOT%\WEB-INF\src
 set OUT=%PROJECT_ROOT%\WEB-INF\classes
-set CP=%LIB%\jakarta.activation-2.0.1.jar;%LIB%\jakarta.mail-2.0.1.jar;%LIB%\ojdbc8.jar;%LIB%\jakarta.servlet.jsp.jstl-api-3.0.0.jar;%CATALINA_HOME%\lib\servlet-api.jar
+REM Build classpath: project libs + all Tomcat lib jars (for Jakarta EE / Part, etc.)
+set "CP="
+if exist "%LIB%" for %%j in ("%LIB%\*.jar") do set "CP=!CP!;%%j"
+for %%j in ("%TC_LIB%\*.jar") do set "CP=!CP!;%%j"
+if "!CP:~0,1!"==";" set "CP=!CP:~1!"
 
 if not exist "%OUT%" mkdir "%OUT%"
 

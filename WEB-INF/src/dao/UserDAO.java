@@ -13,7 +13,7 @@ public class UserDAO {
     
     public User findById(int id) {
         User user = null;
-        String sql = "SELECT id, username, password, email FROM users WHERE id = ?";
+        String sql = "SELECT id, username, password, email, profile_image FROM users WHERE id = ?";
         try (Connection conn = DBUtil.getConnection();
              PreparedStatement pstmt = conn.prepareStatement(sql)) {
             pstmt.setInt(1, id);
@@ -24,6 +24,7 @@ public class UserDAO {
                     user.setUsername(rs.getString(2));
                     user.setPassword(rs.getString(3) != null ? rs.getString(3).trim() : null);
                     user.setEmail(rs.getString(4));
+                    user.setProfileImage(rs.getString(5));
                 }
             }
         } catch (SQLException e) {
@@ -34,11 +35,11 @@ public class UserDAO {
 
     public User findByUsername(String username) {
         User user = null;
-        String sql = "SELECT id, username, password, email FROM users WHERE username = ?";
-        
+        String sql = "SELECT id, username, password, email, profile_image FROM users WHERE username = ?";
+
         try (Connection conn = DBUtil.getConnection();
              PreparedStatement pstmt = conn.prepareStatement(sql)) {
-            
+
             pstmt.setString(1, username);
             try (ResultSet rs = pstmt.executeQuery()) {
                 if (rs.next()) {
@@ -48,6 +49,7 @@ public class UserDAO {
                     String pwd = rs.getString(3);
                     user.setPassword(pwd != null ? pwd.trim() : null);
                     user.setEmail(rs.getString(4));
+                    user.setProfileImage(rs.getString(5));
                 }
             }
         } catch (SQLException e) {
@@ -58,11 +60,11 @@ public class UserDAO {
     
     public User findByEmail(String email) {
         User user = null;
-        String sql = "SELECT id, username, password, email FROM users WHERE LOWER(TRIM(email)) = LOWER(TRIM(?))";
-        
+        String sql = "SELECT id, username, password, email, profile_image FROM users WHERE LOWER(TRIM(email)) = LOWER(TRIM(?))";
+
         try (Connection conn = DBUtil.getConnection();
              PreparedStatement pstmt = conn.prepareStatement(sql)) {
-            
+
             pstmt.setString(1, email != null ? email : "");
             try (ResultSet rs = pstmt.executeQuery()) {
                 if (rs.next()) {
@@ -72,6 +74,7 @@ public class UserDAO {
                     String pwd = rs.getString(3);
                     user.setPassword(pwd != null ? pwd.trim() : null);
                     user.setEmail(rs.getString(4));
+                    user.setProfileImage(rs.getString(5));
                     System.out.println("User found via email: " + email);
                 } else {
                     System.out.println("User not found via email: " + email);
@@ -141,6 +144,20 @@ public class UserDAO {
         try (Connection conn = DBUtil.getConnection();
              PreparedStatement pstmt = conn.prepareStatement(sql)) {
             pstmt.setString(1, PasswordUtil.hashPassword(newPassword.trim()));
+            pstmt.setInt(2, userId);
+            return pstmt.executeUpdate() == 1;
+        } catch (SQLException e) {
+            e.printStackTrace();
+            return false;
+        }
+    }
+
+    /** Updates the profile image path for the user. Path is relative to webapp (e.g. uploads/profiles/xxx.jpg). */
+    public boolean updateProfileImage(int userId, String relativePath) {
+        String sql = "UPDATE users SET profile_image = ? WHERE id = ?";
+        try (Connection conn = DBUtil.getConnection();
+             PreparedStatement pstmt = conn.prepareStatement(sql)) {
+            pstmt.setString(1, relativePath);
             pstmt.setInt(2, userId);
             return pstmt.executeUpdate() == 1;
         } catch (SQLException e) {

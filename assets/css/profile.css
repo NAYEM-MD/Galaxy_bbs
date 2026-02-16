@@ -13,6 +13,133 @@
     font-weight: 700;
     margin: 0 0 16px;
     color: var(--text-primary);
+    text-align: center;
+}
+
+/* Centered circular profile image; clean spacing, dark-theme compatible */
+.profile-avatar-wrap {
+    display: flex;
+    justify-content: center;
+    margin: 16px 0 20px;
+}
+
+.profile-avatar {
+    width: 120px;
+    height: 120px;
+    border-radius: 50%;
+    object-fit: cover;
+    border: 3px solid var(--border-color);
+    background: var(--bg-card);
+}
+
+/* Buttons under avatar: Flexbox, no external framework */
+.profile-actions {
+    display: flex;
+    flex-wrap: wrap;
+    justify-content: center;
+    align-items: center;
+    gap: 12px;
+    margin-bottom: 20px;
+}
+
+.profile-upload-form {
+    display: inline-block;
+    margin: 0;
+}
+
+.profile-photo-btn {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    padding: 8px 16px;
+    font-size: 14px;
+    font-weight: 600;
+    color: var(--text-primary);
+    background: var(--glass-bg);
+    border: 1px solid var(--border-color);
+    border-radius: 8px;
+    cursor: pointer;
+    transition: background 0.2s, border-color 0.2s;
+}
+
+.profile-photo-btn:hover {
+    background: var(--bg-hover);
+    border-color: var(--accent-color);
+}
+
+.profile-photo-btn-upload {
+    cursor: pointer;
+}
+
+.profile-photo-input {
+    position: absolute;
+    width: 0.1px;
+    height: 0.1px;
+    opacity: 0;
+    overflow: hidden;
+    z-index: -1;
+}
+
+/* Modal overlay and content (View Photo) */
+.profile-photo-modal {
+    position: fixed;
+    inset: 0;
+    z-index: 1000;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 20px;
+    visibility: hidden;
+    opacity: 0;
+    transition: visibility 0.2s, opacity 0.2s;
+}
+
+.profile-photo-modal[aria-hidden="false"] {
+    visibility: visible;
+    opacity: 1;
+}
+
+.profile-photo-modal-backdrop {
+    position: absolute;
+    inset: 0;
+    background: rgba(0, 0, 0, 0.7);
+    cursor: pointer;
+}
+
+.profile-photo-modal-content {
+    position: relative;
+    max-width: 90vw;
+    max-height: 90vh;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.profile-photo-modal-img {
+    max-width: 100%;
+    max-height: 85vh;
+    border-radius: 8px;
+    box-shadow: 0 8px 32px var(--shadow-strong);
+}
+
+.profile-photo-modal-close {
+    position: absolute;
+    top: -40px;
+    right: 0;
+    width: 36px;
+    height: 36px;
+    font-size: 28px;
+    line-height: 1;
+    color: var(--text-primary);
+    background: var(--glass-bg);
+    border: 1px solid var(--border-color);
+    border-radius: 50%;
+    cursor: pointer;
+    transition: background 0.2s;
+}
+
+.profile-photo-modal-close:hover {
+    background: var(--bg-hover);
 }
 
 .profile-tabs {

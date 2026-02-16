@@ -40,7 +40,7 @@
             <%-- Upload Photo (owner only) and View Photo (all users) --%>
             <div class="profile-actions">
                 <c:if test="${not empty sessionScope.user and sessionScope.user.id == profileUser.id}">
-                <form action="${pageContext.request.contextPath}/profile/upload" method="post" enctype="multipart/form-data" class="profile-upload-form">
+                <form action="${pageContext.request.contextPath}/profile/upload" method="post" enctype="multipart/form-data" class="profile-upload-form" data-upload-url="${pageContext.request.contextPath}/profile/upload">
                     <label class="profile-photo-btn profile-photo-btn-upload">
                         <input type="file" name="profilePhoto" accept="image/*" class="profile-photo-input">
                         Upload Photo
@@ -149,6 +149,27 @@
             <img id="profilePhotoModalImg" src="" alt="Profile photo" class="profile-photo-modal-img">
         </div>
     </div>
+
+    <%-- Crop/Resize modal: choose which part of the photo shows in the circle, then Save or Cancel --%>
+    <c:if test="${not empty sessionScope.user and sessionScope.user.id == profileUser.id}">
+    <div id="profileCropModal" class="profile-crop-modal" role="dialog" aria-modal="true" aria-label="Resize and position photo" aria-hidden="true">
+        <div class="profile-crop-modal-backdrop"></div>
+        <div class="profile-crop-modal-content">
+            <h3 class="profile-crop-title">Adjust photo for profile circle</h3>
+            <div class="profile-crop-preview-wrap">
+                <canvas id="profileCropCanvas" class="profile-crop-canvas" width="280" height="280"></canvas>
+            </div>
+            <div class="profile-crop-controls">
+                <label class="profile-crop-zoom-label">Zoom</label>
+                <input type="range" id="profileCropZoom" class="profile-crop-zoom" min="0.5" max="3" step="0.05" value="1">
+            </div>
+            <div class="profile-crop-actions">
+                <button type="button" class="profile-photo-btn profile-crop-cancel" id="profileCropCancel">Cancel</button>
+                <button type="button" class="profile-photo-btn profile-crop-save" id="profileCropSave">Save</button>
+            </div>
+        </div>
+    </div>
+    </c:if>
 
     <script src="${pageContext.request.contextPath}/assets/js/vote.js"></script>
     <script src="${pageContext.request.contextPath}/assets/js/post-menu.js"></script>

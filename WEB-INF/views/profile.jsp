@@ -1,8 +1,8 @@
 <%@ page language="java" contentType="text/html; charset=UTF-8" pageEncoding="UTF-8"%>
-<%@ page import="util.TimeAgoUtil" %>
-<%@ page import="model.Comment" %>
 <%@ taglib prefix="c" uri="jakarta.tags.core" %>
 <%@ taglib prefix="fn" uri="jakarta.tags.functions" %>
+<%@ taglib prefix="fmt" uri="jakarta.tags.fmt" %>
+<%-- Default tab for My Posts / My Comments --%>
 <c:if test="${empty tab}"><c:set var="tab" value="posts" scope="request"/></c:if>
 <!DOCTYPE html>
 <html>
@@ -24,6 +24,33 @@
         <c:if test="${not empty profileUser}">
         <div class="profile-header">
             <h1 class="profile-username"><c:out value="${profileUser.username}"/></h1>
+
+            <%-- Profile picture: DB image or default avatar (JSTL conditional rendering) --%>
+            <div class="profile-avatar-wrap">
+                <c:choose>
+                    <c:when test="${not empty profileUser.profileImage}">
+                        <img src="${pageContext.request.contextPath}/${profileUser.profileImage}" alt="Profile" class="profile-avatar" id="profileAvatarImg">
+                    </c:when>
+                    <c:otherwise>
+                        <img src="${pageContext.request.contextPath}/assets/img/default-avatar.svg" alt="Default avatar" class="profile-avatar" id="profileAvatarImg">
+                    </c:otherwise>
+                </c:choose>
+            </div>
+
+            <%-- Upload Photo (owner only) and View Photo (all users) --%>
+            <div class="profile-actions">
+                <c:if test="${not empty sessionScope.user and sessionScope.user.id == profileUser.id}">
+                <form action="${pageContext.request.contextPath}/profile/upload" method="post" enctype="multipart/form-data" class="profile-upload-form">
+                    <label class="profile-photo-btn profile-photo-btn-upload">
+                        <input type="file" name="profilePhoto" accept="image/*" class="profile-photo-input">
+                        Upload Photo
+                    </label>
+                </form>
+                </c:if>
+                <button type="button" class="profile-photo-btn profile-photo-btn-view" id="viewPhotoBtn" aria-label="View photo">View Photo</button>
+            </div>
+
+            <%-- Tabs: My Posts | My Comments --%>
             <div class="profile-tabs">
                 <a href="${pageContext.request.contextPath}/profile?username=<c:out value="${profileUser.username}"/>&tab=posts" class="profile-tab ${tab == 'posts' ? 'active' : ''}">My Posts</a>
                 <a href="${pageContext.request.contextPath}/profile?username=<c:out value="${profileUser.username}"/>&tab=comments" class="profile-tab ${tab == 'comments' ? 'active' : ''}">My Comments</a>
@@ -95,7 +122,9 @@
                         <a href="${pageContext.request.contextPath}/posts/detail?id=${comment.postId}" class="comment-post-link"><c:out value="${empty comment.postTitle ? 'Post' : comment.postTitle}"/></a>
                     </div>
                     <div class="comment-card-body"><c:out value="${comment.content}"/></div>
-                    <div class="comment-card-time"><% Comment _c = (Comment)pageContext.findAttribute("comment"); out.print(_c != null && _c.getCreatedAt() != null ? TimeAgoUtil.format(_c.getCreatedAt()) : ""); %></div>
+                    <div class="comment-card-time">
+                        <fmt:formatDate value="${comment.createdAt}" type="both" dateStyle="short" timeStyle="short"/>
+                    </div>
                 </div>
                 </c:forEach>
                 </c:when>
@@ -112,7 +141,17 @@
         </c:if>
     </div>
 
+    <%-- Modal for View Photo (plain JS, no reload) --%>
+    <div id="profilePhotoModal" class="profile-photo-modal" role="dialog" aria-modal="true" aria-label="Profile photo" aria-hidden="true">
+        <div class="profile-photo-modal-backdrop"></div>
+        <div class="profile-photo-modal-content">
+            <button type="button" class="profile-photo-modal-close" id="profilePhotoModalClose" aria-label="Close">×</button>
+            <img id="profilePhotoModalImg" src="" alt="Profile photo" class="profile-photo-modal-img">
+        </div>
+    </div>
+
     <script src="${pageContext.request.contextPath}/assets/js/vote.js"></script>
     <script src="${pageContext.request.contextPath}/assets/js/post-menu.js"></script>
+    <script src="${pageContext.request.contextPath}/assets/js/profile.js"></script>
 </body>
 </html>

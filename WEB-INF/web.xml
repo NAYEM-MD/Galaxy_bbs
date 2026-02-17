@@ -8,6 +8,13 @@
     <display-name>Galaxy BBS</display-name>
     <!-- Force Reload 2026-01-31-2 -->
 
+    <resource-ref>
+        <description>Oracle DB Connection Pool</description>
+        <res-ref-name>jdbc/GalaxyBBS</res-ref-name>
+        <res-type>javax.sql.DataSource</res-type>
+        <res-auth>Container</res-auth>
+    </resource-ref>
+
     <welcome-file-list>
         <welcome-file>index.jsp</welcome-file>
     </welcome-file-list>
@@ -20,6 +27,16 @@
     <filter-mapping>
         <filter-name>AuthFilter</filter-name>
         <url-pattern>/posts/*</url-pattern>
+    </filter-mapping>
+
+    <!-- Filter: set unread notification count for header (replaces NotificationDAO in JSP) -->
+    <filter>
+        <filter-name>NotificationFilter</filter-name>
+        <filter-class>filter.NotificationFilter</filter-class>
+    </filter>
+    <filter-mapping>
+        <filter-name>NotificationFilter</filter-name>
+        <url-pattern>/*</url-pattern>
     </filter-mapping>
 
     <!-- Servlet Definitions -->

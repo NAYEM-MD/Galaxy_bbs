@@ -4,23 +4,57 @@ REM Compile Galaxy BBS Java sources into WEB-INF\classes
 REM Run this from the project root (e.g. c:\tomcat10\webapps\Galaxy_bbs)
 REM JSPs use JSTL (jars in WEB-INF\lib); this compiles servlets/models/DAOs.
 REM
-REM Optional: DB connectivity test (Oracle)
+REM Usage:
+REM   compile_classes.bat           - compile only
+REM   compile_classes.bat check     - verify required JARs exist
 REM   compile_classes.bat dbtest [DB_URL] [DB_USER] [DB_PASSWORD]
-REM Example:
-REM   compile_classes.bat dbtest "jdbc:oracle:thin:@//192.168.1.50:1521/orclpdb1" Galaxy_bbs pro
-REM Or set env vars before running:
-REM   set DB_URL=...
-REM   set DB_USER=Galaxy_bbs
-REM   set DB_PASSWORD=pro
-REM   compile_classes.bat dbtest
+REM
+REM Set CATALINA_HOME if Tomcat is not at C:\tomcat10
 REM ============================================================
 
 setlocal enabledelayedexpansion
 
 set "PROJECT_ROOT=%~dp0"
-REM %~dp0 ends with a backslash; remove it for consistency
 if "%PROJECT_ROOT:~-1%"=="\" set "PROJECT_ROOT=%PROJECT_ROOT:~0,-1%"
 cd /d "%PROJECT_ROOT%"
+
+set LIB=%PROJECT_ROOT%\WEB-INF\lib
+
+REM Optional: check required JARs (run: compile_classes.bat check)
+if /i "%~1"=="check" (
+    echo.
+    echo [Galaxy BBS] Checking required JARs in WEB-INF\lib...
+    set "MISSING=0"
+    set "FOUND_OJ="
+    set "FOUND_BC="
+    set "FOUND_MAIL="
+    for %%f in ("%LIB%\ojdbc*.jar") do set "FOUND_OJ=1"
+    for %%f in ("%LIB%\jbcrypt*.jar") do set "FOUND_BC=1"
+    for %%f in ("%LIB%\*mail*.jar") do set "FOUND_MAIL=1"
+    if not defined FOUND_OJ (
+        echo   [MISSING] ojdbc8.jar or ojdbc11.jar - Oracle JDBC driver
+        echo            Get from: Oracle Maven or oracle.com
+        set "MISSING=1"
+    ) else echo   [OK] Oracle JDBC
+    if not defined FOUND_BC (
+        echo   [MISSING] jbcrypt-0.4.jar - bcrypt hashing
+        echo            Run: download_deps.bat  OR  Maven: org.mindrot:jbcrypt:0.4
+        set "MISSING=1"
+    ) else echo   [OK] jBCrypt
+    if not defined FOUND_MAIL (
+        echo   [MISSING] jakarta.mail / angus-mail - for email (welcome, password reset)
+        echo            Maven: org.eclipse.angus:angus-mail:2.0.2  +  jakarta.mail-api
+        set "MISSING=1"
+    ) else echo   [OK] Mail API
+    if %MISSING%==1 (
+        echo.
+        echo Add missing JARs to WEB-INF\lib\  then run compile_classes.bat
+        exit /b 1
+    )
+    echo.
+    echo All required JARs found.
+    exit /b 0
+)
 
 REM Set Tomcat home - edit this if Tomcat is elsewhere
 if "%CATALINA_HOME%"=="" set CATALINA_HOME=C:\tomcat10

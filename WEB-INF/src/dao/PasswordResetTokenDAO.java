@@ -26,7 +26,7 @@ public class PasswordResetTokenDAO {
     public void createToken(int userId, String rawToken, long expiresAtEpoch) {
         String deleteSql = "DELETE FROM password_reset_tokens WHERE user_id = ?";
         String insertSql = "INSERT INTO password_reset_tokens (user_id, token_hash, expires_at, used) VALUES (?, ?, ?, 0)";
-        String tokenHash = PasswordUtil.hashPassword(rawToken);
+        String tokenHash = PasswordUtil.hashForToken(rawToken);
         try (Connection conn = DBUtil.getConnection()) {
             conn.setAutoCommit(false);
             try (PreparedStatement del = conn.prepareStatement(deleteSql)) {
@@ -50,7 +50,7 @@ public class PasswordResetTokenDAO {
      * or -1 if invalid.
      */
     public int findUserIdByValidToken(String rawToken) {
-        String tokenHash = PasswordUtil.hashPassword(rawToken);
+        String tokenHash = PasswordUtil.hashForToken(rawToken);
         String sql = "SELECT user_id FROM password_reset_tokens " +
                      "WHERE token_hash = ? AND used = 0 AND expires_at > SYSTIMESTAMP";
         try (Connection conn = DBUtil.getConnection();
@@ -71,7 +71,7 @@ public class PasswordResetTokenDAO {
      * Marks a token as used.
      */
     public void markTokenUsed(String rawToken) {
-        String tokenHash = PasswordUtil.hashPassword(rawToken);
+        String tokenHash = PasswordUtil.hashForToken(rawToken);
         String sql = "UPDATE password_reset_tokens SET used = 1 WHERE token_hash = ?";
         try (Connection conn = DBUtil.getConnection();
              PreparedStatement ps = conn.prepareStatement(sql)) {

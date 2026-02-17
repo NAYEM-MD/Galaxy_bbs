@@ -1,6 +1,34 @@
 # Galaxy BBS – セットアップガイド（GitHub からクローンした場合）
 
-GitHub からプロジェクトをクローンしてローカルで実行する際の手順です。
+---
+
+## クイックスタート（GitHub クローン後）
+
+**メニュー方式:** `run.bat` を実行すると、依存取得・コンパイル・Tomcat 起動などを選べます。
+
+```batch
+REM 1. リポジトリをクローン
+git clone https://github.com/NAYEM-MD/Galaxy_bbs.git
+cd Galaxy_bbs
+
+REM 2. 依存 JAR を取得（ojdbc は手動追加が必要）
+download_deps.bat
+
+REM 3. Oracle JDBC を WEB-INF\lib に配置
+REM    ojdbc8.jar または ojdbc11.jar を Oracle / Maven から入手してコピー
+
+REM 4. 依存関係の確認
+compile_classes.bat check
+
+REM 5. コンパイル
+compile_classes.bat
+
+REM 6. DB セットアップ（Oracle が起動していること）
+REM    SQL/schema.sql を実行
+
+REM 7. Tomcat の webapps に配置し、startup.bat で起動
+REM    http://localhost:8080/Galaxy_bbs/
+```
 
 ---
 
@@ -9,7 +37,8 @@ GitHub からプロジェクトをクローンしてローカルで実行する�
 - **Java**（JDK 11 以上）
 - **Apache Tomcat** 10.x（9.x でも微調整で動作可能）
 - **Oracle Database**（Express Edition またはフル版）
-- **Oracle JDBC ドライバ**（`ojdbc8.jar` または `ojdbc11.jar`）を `WEB-INF/lib/` に配置
+- **Oracle JDBC ドライバ**（`ojdbc8.jar` または `ojdbc11.jar`）を `WEB-INF/lib/` に配置（手動）
+- **jBCrypt** と **Jakarta Mail** は `download_deps.bat` で自動取得可能
 
 ---
 
@@ -69,10 +98,16 @@ set DB_PASSWORD=pro
 
 ## 4. プロジェクトのビルド
 
-プロジェクトルートで実行：
+```batch
+compile_classes.bat check    REM 必要な JAR があるか確認
+compile_classes.bat         REM コンパイル
+```
+
+依存 JAR をまとめて取得する場合：
 
 ```batch
-compile_classes.bat
+download_deps.bat
+REM ojdbc8.jar は Oracle から手動で入手し WEB-INF\lib に配置
 ```
 
 DB 接続テスト（任意）：
@@ -103,5 +138,7 @@ Tomcat を起動してください（例：`startup.bat`）。`DB_URL`、`DB_USE
 |--------|------|
 | `password_reset_tokens` で ORA-00942 | `SQL/schema.sql` 末尾の Migration セクション内の CREATE 文を実行（2.3 参照） |
 | Oracle JDBC Driver not found | `ojdbc8.jar` を `WEB-INF/lib/` に追加 |
+| ClassNotFoundException: org.mindrot.jbcrypt.BCrypt | `jbcrypt-0.4.jar` を `WEB-INF/lib/` に追加 |
 | DB 接続失敗 | `DB_URL`、`DB_USER`、`DB_PASSWORD` と Oracle の起動を確認 |
-| Tomcat lib not found | `compile_classes.bat` 内で `CATALINA_HOME`（例：`C:\tomcat10`）を設定 |
+| Tomcat lib not found | `CATALINA_HOME` を設定（例：`set CATALINA_HOME=C:\tomcat10`）または `compile_classes.bat` を編集 |
+| 依存 JAR が足りない | `download_deps.bat` 実行 → `ojdbc8.jar` を手動で `WEB-INF\lib` に追加 |

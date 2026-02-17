@@ -3,19 +3,10 @@ package controller;
 import dao.UserDAO;
 import dao.PasswordResetTokenDAO;
 import model.User;
+import util.EmailUtil;
+import util.ValidationUtil;
 
 import java.io.IOException;
-import java.io.UnsupportedEncodingException;
-import java.util.Date;
-import java.util.Properties;
-import jakarta.mail.Authenticator;
-import jakarta.mail.Message;
-import jakarta.mail.MessagingException;
-import jakarta.mail.PasswordAuthentication;
-import jakarta.mail.Session;
-import jakarta.mail.Transport;
-import jakarta.mail.internet.InternetAddress;
-import jakarta.mail.internet.MimeMessage;
 import jakarta.servlet.ServletException;
 import jakarta.servlet.http.HttpServlet;
 import jakarta.servlet.http.HttpServletRequest;
@@ -111,6 +102,11 @@ public class AuthServlet extends HttpServlet {
 
             System.out.println("Registering user: " + email); // Debug log
 
+            if (!ValidationUtil.isValidEmail(email)) {
+                request.setAttribute("errorMsg", "Please enter a valid email address.");
+                forwardTo(request, response, "/auth/register.jsp");
+                return;
+            }
             if (getUserDAO().findByEmail(email) != null) {
                 request.setAttribute("errorMsg", "Email already registered");
                 forwardTo(request, response, "/auth/register.jsp");
@@ -122,7 +118,13 @@ public class AuthServlet extends HttpServlet {
             System.out.println("User registered successfully: " + email); // Debug log
 
             // Only new account creators get welcome email — sent to the address they registered with (Gmail or any)
-            sendWelcomeEmail(email);
+            EmailUtil.sendEmail(email, "Welcome to Galaxy_BBS",
+                "Hello,\n\n"
+                + "Thank you for creating an account on Galaxy_BBS.\n\n"
+                + "Your registration was successful, and you can now log in using your registered email address.\n\n"
+                + "We hope you enjoy sharing and discussing ideas with the Galaxy_BBS community.\n\n"
+                + "Best regards,\n"
+                + "Galaxy_BBS Team");
 
             // Redirect to login page
             response.sendRedirect(request.getContextPath() + "/auth/login");
@@ -160,7 +162,14 @@ public class AuthServlet extends HttpServlet {
             String baseUrl = request.getRequestURL().toString().replace(request.getRequestURI(), request.getContextPath());
             String resetLink = baseUrl + "/auth/reset-password?token=" + java.net.URLEncoder.encode(token, java.nio.charset.StandardCharsets.UTF_8);
 
-            sendPasswordResetEmail(email, resetLink);
+            EmailUtil.sendEmail(email, "Galaxy_BBS - Password Reset",
+                "Hello,\n\n"
+                + "We received a request to reset the password for your Galaxy_BBS account.\n\n"
+                + "To reset your password, click the link below (or copy and paste it into your browser):\n"
+                + resetLink + "\n\n"
+                + "This link will expire in 1 hour. If you did not request a password reset, you can safely ignore this email.\n\n"
+                + "Best regards,\n"
+                + "Galaxy_BBS Team");
         } catch (Throwable t) {
             // Most common causes:
             // - password_reset_tokens table does not exist
@@ -219,123 +228,4 @@ public class AuthServlet extends HttpServlet {
         }
     }
 
-    /**
-     * Sends a plain-text welcome email to the user after successful registration.
-     * Uses Jakarta Mail API with Gmail SMTP. Credentials are read from environment
-     * variables (SMTP_USER, SMTP_PASSWORD) or placeholders for development.
-     * Email failure does not block registration; user is still redirected to login.
-     */
-    private void sendWelcomeEmail(String toEmail) {
-        // Read from env: run set_smtp_env.bat in the SAME Command Prompt before starting Tomcat
-        String user = System.getenv("SMTP_USER");
-        String pass = System.getenv("SMTP_PASSWORD");
-        if (user == null || user.isEmpty()) {
-            user = "YOUR_GMAIL@gmail.com";
-            System.err.println("[Galaxy_BBS] SMTP_USER not set. Run set_smtp_env.bat in the same window before starting Tomcat.");
-        }
-        if (pass == null || pass.isEmpty()) {
-            pass = "YOUR_APP_PASSWORD";
-            System.err.println("[Galaxy_BBS] SMTP_PASSWORD not set. Gmail will reject login.");
-        }
-        final String smtpUser = user;
-        final String smtpPassword = pass;
-
-        // Gmail SMTP (TLS 587); trust Gmail for SSL
-        Properties props = new Properties();
-        props.put("mail.smtp.host", "smtp.gmail.com");
-        props.put("mail.smtp.port", "587");
-        props.put("mail.smtp.auth", "true");
-        props.put("mail.smtp.starttls.enable", "true");
-        props.put("mail.smtp.ssl.trust", "smtp.gmail.com");
-
-        // Authenticator supplies credentials when the server requests them
-        Authenticator authenticator = new Authenticator() {
-            @Override
-            protected PasswordAuthentication getPasswordAuthentication() {
-                return new PasswordAuthentication(smtpUser, smtpPassword);
-            }
-        };
-
-        Session session = Session.getInstance(props, authenticator);
-
-        try {
-            MimeMessage msg = new MimeMessage(session);
-            msg.setFrom(new InternetAddress(user, "Galaxy_BBS"));
-            msg.setRecipients(Message.RecipientType.TO, InternetAddress.parse(toEmail));
-            msg.setSubject("Welcome to Galaxy_BBS");
-            msg.setSentDate(new Date());
-            // Plain text body exactly as required (no HTML)
-            msg.setText(
-                "Hello,\n\n"
-                + "Thank you for creating an account on Galaxy_BBS.\n\n"
-                + "Your registration was successful, and you can now log in using your registered email address.\n\n"
-                + "We hope you enjoy sharing and discussing ideas with the Galaxy_BBS community.\n\n"
-                + "Best regards,\n"
-                + "Galaxy_BBS Team"
-            );
-
-            Transport.send(msg);
-            System.out.println("[Galaxy_BBS] Welcome email sent to: " + toEmail);
-        } catch (MessagingException | UnsupportedEncodingException e) {
-            System.err.println("[Galaxy_BBS] Failed to send welcome email to " + toEmail + ": " + e.getMessage());
-            e.printStackTrace();
-        }
-    }
-
-    /**
-     * Sends a password reset email with a unique link.
-     */
-    private void sendPasswordResetEmail(String toEmail, String resetLink) {
-        String user = System.getenv("SMTP_USER");
-        String pass = System.getenv("SMTP_PASSWORD");
-        if (user == null || user.isEmpty()) {
-            user = "YOUR_GMAIL@gmail.com";
-            System.err.println("[Galaxy_BBS] SMTP_USER not set. Run set_smtp_env.bat in the same window before starting Tomcat.");
-        }
-        if (pass == null || pass.isEmpty()) {
-            pass = "YOUR_APP_PASSWORD";
-            System.err.println("[Galaxy_BBS] SMTP_PASSWORD not set. Gmail will reject login.");
-        }
-        final String smtpUser = user;
-        final String smtpPassword = pass;
-
-        Properties props = new Properties();
-        props.put("mail.smtp.host", "smtp.gmail.com");
-        props.put("mail.smtp.port", "587");
-        props.put("mail.smtp.auth", "true");
-        props.put("mail.smtp.starttls.enable", "true");
-        props.put("mail.smtp.ssl.trust", "smtp.gmail.com");
-
-        Authenticator authenticator = new Authenticator() {
-            @Override
-            protected PasswordAuthentication getPasswordAuthentication() {
-                return new PasswordAuthentication(smtpUser, smtpPassword);
-            }
-        };
-
-        Session session = Session.getInstance(props, authenticator);
-
-        try {
-            MimeMessage msg = new MimeMessage(session);
-            msg.setFrom(new InternetAddress(user, "Galaxy_BBS"));
-            msg.setRecipients(Message.RecipientType.TO, InternetAddress.parse(toEmail));
-            msg.setSubject("Galaxy_BBS - Password Reset");
-            msg.setSentDate(new Date());
-            msg.setText(
-                "Hello,\n\n"
-                + "We received a request to reset the password for your Galaxy_BBS account.\n\n"
-                + "To reset your password, click the link below (or copy and paste it into your browser):\n"
-                + resetLink + "\n\n"
-                + "This link will expire in 1 hour. If you did not request a password reset, you can safely ignore this email.\n\n"
-                + "Best regards,\n"
-                + "Galaxy_BBS Team"
-            );
-
-            Transport.send(msg);
-            System.out.println("[Galaxy_BBS] Password reset email sent to: " + toEmail);
-        } catch (MessagingException | UnsupportedEncodingException e) {
-            System.err.println("[Galaxy_BBS] Failed to send password reset email to " + toEmail + ": " + e.getMessage());
-            e.printStackTrace();
-        }
-    }
 }

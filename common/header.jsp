@@ -1,13 +1,11 @@
 <%@ page language="java" contentType="text/html; charset=UTF-8" pageEncoding="UTF-8"%>
 <%@ page import="model.User" %>
-<%@ page import="dao.NotificationDAO" %>
 <%@ taglib prefix="c" uri="jakarta.tags.core" %>
 <%
-    User currentUser = (User) session.getAttribute("user");
     int unreadCount = 0;
-    if (currentUser != null) {
-        NotificationDAO notificationDAO = new NotificationDAO();
-        unreadCount = notificationDAO.getUnreadCount(currentUser.getId());
+    Object unreadObj = request.getAttribute("unreadCount");
+    if (unreadObj instanceof Number) {
+        unreadCount = ((Number) unreadObj).intValue();
     }
     request.setAttribute("unreadCount", Integer.valueOf(unreadCount));
 %>

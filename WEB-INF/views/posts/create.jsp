@@ -1,6 +1,7 @@
 <%@ page language="java" contentType="text/html; charset=UTF-8" pageEncoding="UTF-8"%>
 <%@ page import="java.util.List" %>
 <%@ page import="model.Tag" %>
+<%@ taglib prefix="c" uri="jakarta.tags.core" %>
 <!DOCTYPE html>
 <html>
 <head>
@@ -23,6 +24,10 @@
         </div>
 
         <div class="post-form-card">
+            <c:if test="${not empty sessionScope.uploadError}">
+                <p class="error-msg"><c:out value="${sessionScope.uploadError}"/></p>
+                <c:remove var="uploadError" scope="session"/>
+            </c:if>
             <div class="post-tabs">
                 <div class="tab active">
                     <span class="tab-icon">📄</span> Post

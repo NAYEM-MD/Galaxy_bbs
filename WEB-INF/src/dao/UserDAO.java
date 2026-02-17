@@ -106,20 +106,7 @@ public class UserDAO {
     public boolean verifyPassword(int userId, String password) {
         User user = findById(userId);
         if (user == null || user.getPassword() == null) return false;
-        String input = (password != null) ? password.trim() : "";
-        
-        // Check hashed password
-        String hashedInput = PasswordUtil.hashPassword(input);
-        if (user.getPassword().equals(hashedInput)) {
-            return true;
-        }
-        
-        // Fallback: Check plain text (for legacy users)
-        if (user.getPassword().equals(input)) {
-            return true;
-        }
-        
-        return false;
+        return PasswordUtil.verifyPassword(password, user.getPassword());
     }
 
     public boolean updateEmail(int userId, String newEmail) {
@@ -221,25 +208,16 @@ public class UserDAO {
         System.out.println("Checking login for: " + email);
         User user = findByEmail(email);
         if (user != null) {
-            System.out.println("User exists. Checking password...");
             String stored = user.getPassword();
-            String inputPwd = (password != null) ? password.trim() : "";
-            
-            // Check hashed password
-            String hashedInput = PasswordUtil.hashPassword(inputPwd);
-            if (stored != null && stored.equals(hashedInput)) {
-                System.out.println("Password match (Hashed)!");
+            if (stored != null && PasswordUtil.verifyPassword(password, stored)) {
+                // Migrate legacy (plain/SHA-256) to bcrypt on next password use
+                if (!stored.startsWith("$2")) {
+                    System.out.println("Migrating legacy password to bcrypt...");
+                    updatePassword(user.getId(), (password != null) ? password.trim() : "");
+                    user.setPassword(PasswordUtil.hashPassword((password != null) ? password.trim() : ""));
+                }
                 return user;
             }
-            
-            // Fallback: Check plain text and migrate
-            if (stored != null && stored.equals(inputPwd)) {
-                System.out.println("Password match (Plain text). Migrating to hash...");
-                updatePassword(user.getId(), inputPwd); // Update DB with hash
-                user.setPassword(hashedInput); // Update memory object
-                return user;
-            }
-            
             System.out.println("Password mismatch!");
         }
         return null;

@@ -70,7 +70,13 @@ public class PostServlet extends HttpServlet {
             case "/detail":
                 String idStr = request.getParameter("id");
                 if (idStr != null) {
-                    int id = Integer.parseInt(idStr);
+                    int id;
+                    try {
+                        id = Integer.parseInt(idStr);
+                    } catch (NumberFormatException e) {
+                        response.sendRedirect(request.getContextPath() + "/posts/feed");
+                        return;
+                    }
                     Post post = postDAO.findById(id, currentUserId);
                     List<Comment> flatComments = commentDAO.findByPostId(id);
                     List<Comment> commentTree = buildCommentTree(flatComments);
@@ -118,9 +124,18 @@ public class PostServlet extends HttpServlet {
                     
                     // Determine file extension
                     String extension = "";
-                    int i = fileName.lastIndexOf('.');
-                    if (i > 0) {
-                        extension = fileName.substring(i);
+                    if (fileName != null) {
+                        int i = fileName.lastIndexOf('.');
+                        if (i > 0) {
+                            extension = fileName.substring(i).toLowerCase();
+                        }
+                    }
+                    
+                    // Whitelist: reject .jsp, .exe, etc.
+                    if (!ALLOWED_MEDIA_EXTENSIONS.contains(extension)) {
+                        request.getSession().setAttribute("uploadError", "Invalid file type. Allowed: jpg, png, gif, webp, mp4, etc.");
+                        response.sendRedirect(request.getContextPath() + "/posts/create");
+                        return;
                     }
                     
                     // Generate unique filename
@@ -209,13 +224,21 @@ public class PostServlet extends HttpServlet {
     }
 
     private String getSubmittedFileName(Part part) {
-        for (String cd : part.getHeader("content-disposition").split(";")) {
-            if (cd.trim().startsWith("filename")) {
-                return cd.substring(cd.indexOf('=') + 1).trim().replace("\"", "");
+        String cd = part.getHeader("content-disposition");
+        if (cd == null || cd.isEmpty()) return null;
+        for (String s : cd.split(";")) {
+            if (s.trim().startsWith("filename")) {
+                return s.substring(s.indexOf('=') + 1).trim().replace("\"", "");
             }
         }
         return null;
     }
+
+    /** Allowed extensions for media upload (whitelist). Rejects .jsp, .exe, etc. */
+    private static final java.util.Set<String> ALLOWED_MEDIA_EXTENSIONS = java.util.Set.of(
+        ".jpg", ".jpeg", ".png", ".gif", ".webp", ".bmp",
+        ".mp4", ".webm", ".mov", ".avi", ".mkv"
+    );
 
     /** Builds a tree of comments (roots with nested replies) from a flat list. */
     private List<Comment> buildCommentTree(List<Comment> flat) {

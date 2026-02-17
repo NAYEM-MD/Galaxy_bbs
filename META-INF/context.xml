@@ -1,0 +1,16 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<Context>
+    <!-- Tomcat JDBC Connection Pool for Galaxy BBS -->
+    <!-- Edit url, username, password for your environment. DBUtil uses JNDI when available. -->
+    <Resource name="jdbc/GalaxyBBS"
+        auth="Container"
+        type="javax.sql.DataSource"
+        maxTotal="20"
+        maxIdle="10"
+        maxWaitMillis="10000"
+        username="Galaxy_bbs"
+        password="pro"
+        driverClassName="oracle.jdbc.OracleDriver"
+        url="jdbc:oracle:thin:@localhost:1521:orcl"
+        factory="org.apache.tomcat.jdbc.pool.DataSourceFactory"/>
+</Context>

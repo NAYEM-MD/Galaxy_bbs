@@ -23,6 +23,7 @@ public class ProfilePhotoUploadServlet extends HttpServlet {
     private UserDAO userDAO = new UserDAO();
 
     private static final String UPLOAD_SUBDIR = "uploads" + File.separator + "profiles";
+    private static final java.util.Set<String> ALLOWED_IMAGE_EXTENSIONS = java.util.Set.of(".jpg", ".jpeg", ".png", ".gif", ".webp", ".bmp");
     private static final String RELATIVE_PATH_PREFIX = "uploads/profiles/";
 
     @Override
@@ -58,6 +59,10 @@ public class ProfilePhotoUploadServlet extends HttpServlet {
             else if (contentType.contains("gif")) extension = ".gif";
             else if (contentType.contains("webp")) extension = ".webp";
             else extension = ".jpg";
+        }
+        if (!ALLOWED_IMAGE_EXTENSIONS.contains(extension.toLowerCase())) {
+            response.sendRedirect(request.getContextPath() + "/profile?username=" + user.getUsername() + "&error=invalid_file");
+            return;
         }
 
         String uniqueFileName = UUID.randomUUID().toString() + extension;

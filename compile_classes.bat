@@ -107,13 +107,6 @@ dir /s /b "%SRC%\*.java" 2>nul >"%SRC_LIST%"
 if not exist "%SRC_LIST%" goto no_sources
 findstr /r "." "%SRC_LIST%" >nul 2>&1
 if errorlevel 1 goto no_sources
-REM If JUnit not in lib, exclude test sources so main app compiles without running download_deps
-set "JUNIT_JAR="
-for %%f in ("%LIB%\junit*.jar") do set "JUNIT_JAR=1"
-if not defined JUNIT_JAR (
-    findstr /v "\test\" "%SRC_LIST%" > "%SRC_LIST%.tmp" 2>nul
-    if exist "%SRC_LIST%.tmp" move /y "%SRC_LIST%.tmp" "%SRC_LIST%" >nul
-)
 goto have_sources
 :no_sources
 echo ERROR: No .java files found under %SRC%
@@ -121,16 +114,24 @@ exit /b 1
 :have_sources
 
 REM Write full javac args to file to avoid Windows command-line length limit and quoting issues
+REM Use forward slashes so javac does not interpret \t etc. in paths (Java accepts / on Windows)
+set "OUT_FWD=!OUT:\=/!"
+set "SRC_FWD=!SRC:\=/!"
+set "CP_FWD=!CP:\=/!"
 echo -encoding> "%JAVAC_ARGS%"
 echo UTF-8>> "%JAVAC_ARGS%"
 echo -d>> "%JAVAC_ARGS%"
-echo !OUT!>> "%JAVAC_ARGS%"
+echo !OUT_FWD!>> "%JAVAC_ARGS%"
 echo -sourcepath>> "%JAVAC_ARGS%"
-echo !SRC!>> "%JAVAC_ARGS%"
+echo !SRC_FWD!>> "%JAVAC_ARGS%"
 echo -cp>> "%JAVAC_ARGS%"
-echo !CP!>> "%JAVAC_ARGS%"
-REM Append all .java paths (one per line) - javac accepts multiple source paths in one arg file
-type "%SRC_LIST%" >> "%JAVAC_ARGS%"
+echo !CP_FWD!>> "%JAVAC_ARGS%"
+REM Append all .java paths (one per line) - use forward slashes to avoid \t etc.
+for /f "usebackq delims=" %%a in ("%SRC_LIST%") do (
+  set "line=%%a"
+  set "line=!line:\=/!"
+  echo !line!>> "%JAVAC_ARGS%"
+)
 
 echo Compiling Java sources to WEB-INF\classes ...
 javac @"%JAVAC_ARGS%"

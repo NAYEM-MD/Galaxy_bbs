@@ -75,17 +75,13 @@ public class AuthServlet extends HttpServlet {
             if (email == null) email = "";
             if (password == null) password = "";
             
-            System.out.println("Login attempt for: " + email); // Debug log
-            
             User user = getUserDAO().checkLogin(email, password);
             if (user != null) {
-                System.out.println("Login successful for: " + email); // Debug log
                 HttpSession session = request.getSession();
                 session.setAttribute("loginUser", user);  // used by AuthFilter
                 session.setAttribute("user", user);      // used by JSPs and other servlets
                 response.sendRedirect(request.getContextPath() + "/posts/feed");
             } else {
-                System.out.println("Login failed for: " + email); // Debug log
                 request.setAttribute("errorMsg", "Invalid email or password");
                 forwardTo(request, response, "/auth/login.jsp");
             }
@@ -100,8 +96,6 @@ public class AuthServlet extends HttpServlet {
             if (username == null) username = "";
             if (password == null) password = "";
 
-            System.out.println("Registering user: " + email); // Debug log
-
             if (!ValidationUtil.isValidEmail(email)) {
                 request.setAttribute("errorMsg", "Please enter a valid email address.");
                 forwardTo(request, response, "/auth/register.jsp");
@@ -115,7 +109,6 @@ public class AuthServlet extends HttpServlet {
 
             User user = new User(username, password, email);
             getUserDAO().save(user);
-            System.out.println("User registered successfully: " + email); // Debug log
 
             // Only new account creators get welcome email — sent to the address they registered with (Gmail or any)
             EmailUtil.sendEmail(email, "Welcome to Galaxy_BBS",

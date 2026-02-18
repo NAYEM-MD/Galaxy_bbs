@@ -1,3 +1,5 @@
 *.class
 *.uploads
 uploads
+config.bat
+node_modules

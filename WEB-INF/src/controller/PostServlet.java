@@ -9,9 +9,13 @@ import model.Tag;
 import model.User;
 import model.Poll;
 import model.PollOption;
+import util.FileTypeUtil;
 
+import java.io.ByteArrayInputStream;
+import java.io.ByteArrayOutputStream;
 import java.io.File;
 import java.io.IOException;
+import java.io.InputStream;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
@@ -156,43 +160,41 @@ public class PostServlet extends HttpServlet {
             if ("media".equals(postType)) {
                 Part filePart = request.getPart("mediaFile");
                 if (filePart != null && filePart.getSize() > 0) {
-                    String fileName = getSubmittedFileName(filePart);
-                    String contentType = filePart.getContentType();
-                    
-                    // Determine file extension
-                    String extension = "";
-                    if (fileName != null) {
-                        int i = fileName.lastIndexOf('.');
-                        if (i > 0) {
-                            extension = fileName.substring(i).toLowerCase();
-                        }
-                    }
-                    
-                    // Whitelist: reject .jsp, .exe, etc.
-                    if (!ALLOWED_MEDIA_EXTENSIONS.contains(extension)) {
-                        request.getSession().setAttribute("uploadError", "Invalid file type. Allowed: jpg, png, gif, webp, mp4, etc.");
+                    // Read into memory (max 10 MB per @MultipartConfig) so we can validate magic bytes
+                    byte[] fileBytes;
+                    try {
+                        fileBytes = readAllBytes(filePart.getInputStream(), 10 * 1024 * 1024);
+                    } catch (IOException e) {
+                        request.getSession().setAttribute("uploadError", "File too large or failed to read.");
                         response.sendRedirect(request.getContextPath() + "/posts/create");
                         return;
                     }
-                    
-                    // Generate unique filename
+                    // Validate by magic bytes; Content-Type and client filename can be spoofed
+                    String extension;
+                    try {
+                        extension = FileTypeUtil.detectMediaExtension(new ByteArrayInputStream(fileBytes));
+                    } catch (IOException e) {
+                        extension = null;
+                    }
+                    if (extension == null || !ALLOWED_MEDIA_EXTENSIONS.contains(extension)) {
+                        request.getSession().setAttribute("uploadError", "Invalid file type. Allowed: jpg, png, gif, webp, bmp, mp4, webm, mov, avi, mkv.");
+                        response.sendRedirect(request.getContextPath() + "/posts/create");
+                        return;
+                    }
+                    // Use server-detected extension, not client filename
                     String uniqueFileName = UUID.randomUUID().toString() + extension;
-                    
-                    // Get upload directory
                     String uploadPath = getServletContext().getRealPath("") + File.separator + "uploads";
                     File uploadDir = new File(uploadPath);
                     if (!uploadDir.exists()) uploadDir.mkdir();
-                    
-                    // Save file
-                    filePart.write(uploadPath + File.separator + uniqueFileName);
-                    
-                    mediaUrl = request.getContextPath() + "/uploads/" + uniqueFileName;
-                    
-                    if (contentType.startsWith("image/")) {
-                        mediaType = "image";
-                    } else if (contentType.startsWith("video/")) {
-                        mediaType = "video";
+                    try {
+                        java.nio.file.Files.write(new File(uploadDir, uniqueFileName).toPath(), fileBytes);
+                    } catch (IOException e) {
+                        request.getSession().setAttribute("uploadError", "Failed to save file.");
+                        response.sendRedirect(request.getContextPath() + "/posts/create");
+                        return;
                     }
+                    mediaUrl = request.getContextPath() + "/uploads/" + uniqueFileName;
+                    mediaType = FileTypeUtil.ALLOWED_IMAGE_EXTENSIONS.contains(extension) ? "image" : "video";
                 }
             } else if ("poll".equals(postType)) {
                 String pollQuestion = request.getParameter("pollQuestion");
@@ -269,6 +271,17 @@ public class PostServlet extends HttpServlet {
             }
         }
         return null;
+    }
+
+    private static byte[] readAllBytes(InputStream in, int maxSize) throws IOException {
+        ByteArrayOutputStream out = new ByteArrayOutputStream();
+        byte[] buf = new byte[8192];
+        int n;
+        while ((n = in.read(buf)) != -1) {
+            out.write(buf, 0, n);
+            if (out.size() > maxSize) throw new IOException("File too large");
+        }
+        return out.toByteArray();
     }
 
     /** Allowed extensions for media upload (whitelist). Rejects .jsp, .exe, etc. */

@@ -1,6 +1,11 @@
 function votePoll(pollId, optionId) {
     const xhr = new XMLHttpRequest();
     const ctx = window.appContextPath || '';
+    const meta = document.querySelector('meta[name="csrf-token"]');
+    const csrfToken = meta ? meta.getAttribute('content') : '';
+    let body = 'pollId=' + encodeURIComponent(pollId) + '&optionId=' + encodeURIComponent(optionId);
+    if (csrfToken) body += '&csrfToken=' + encodeURIComponent(csrfToken);
+
     xhr.open('POST', ctx + '/polls/vote', true);
     xhr.setRequestHeader('Content-Type', 'application/x-www-form-urlencoded');
     
@@ -19,7 +24,7 @@ function votePoll(pollId, optionId) {
         }
     };
     
-    xhr.send('pollId=' + pollId + '&optionId=' + optionId);
+    xhr.send(body);
 }
 
 function updatePollUI(pollId, data) {

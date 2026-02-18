@@ -19,6 +19,16 @@
         <welcome-file>index.jsp</welcome-file>
     </welcome-file-list>
 
+    <!-- Filter: CSRF token generation (GET) and validation (POST) -->
+    <filter>
+        <filter-name>CsrfFilter</filter-name>
+        <filter-class>filter.CsrfFilter</filter-class>
+    </filter>
+    <filter-mapping>
+        <filter-name>CsrfFilter</filter-name>
+        <url-pattern>/*</url-pattern>
+    </filter-mapping>
+
     <!-- Filter: protect /posts/* - redirect to login if not authenticated -->
     <filter>
         <filter-name>AuthFilter</filter-name>

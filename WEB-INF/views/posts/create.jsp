@@ -42,7 +42,7 @@
             </div>
 
             <form action="${pageContext.request.contextPath}/posts/create" method="post" class="post-form" enctype="multipart/form-data">
-                
+                <input type="hidden" name="csrfToken" value="${sessionScope.csrfToken}">
                 <!-- Hidden input to track post type -->
                 <input type="hidden" name="postType" id="postType" value="text">
 

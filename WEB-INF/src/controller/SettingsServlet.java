@@ -11,6 +11,8 @@ import jakarta.servlet.http.HttpSession;
 
 import java.io.IOException;
 
+import util.ValidationUtil;
+
 public class SettingsServlet extends HttpServlet {
     private UserDAO userDAO = new UserDAO();
 
@@ -42,8 +44,11 @@ public class SettingsServlet extends HttpServlet {
         if ("updateEmail".equals(action)) {
             String newEmail = request.getParameter("newEmail");
             if (newEmail != null && !newEmail.trim().isEmpty()) {
-                if (userDAO.updateEmail(userId, newEmail.trim())) {
-                    user.setEmail(newEmail.trim());
+                String trimmed = newEmail.trim();
+                if (!ValidationUtil.isValidEmail(trimmed)) {
+                    request.setAttribute("error", "Please enter a valid email address.");
+                } else if (userDAO.updateEmail(userId, trimmed)) {
+                    user.setEmail(trimmed);
                     session.setAttribute("user", user);
                     request.setAttribute("message", "Email updated successfully.");
                 } else {

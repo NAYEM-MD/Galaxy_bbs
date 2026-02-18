@@ -28,6 +28,7 @@
         </c:if>
 
         <form id="forgotForm" action="${pageContext.request.contextPath}/auth/forgot-password" method="post">
+            <input type="hidden" name="csrfToken" value="${sessionScope.csrfToken}">
             <div class="form-group">
                 <label>Email</label>
                 <input type="email" name="email" placeholder="Enter the email linked to your account" required autofocus>

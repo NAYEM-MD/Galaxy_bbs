@@ -8,6 +8,7 @@
 <html>
 <head>
     <meta charset="UTF-8">
+    <meta name="csrf-token" content="${sessionScope.csrfToken}">
     <title><c:out value="${not empty profileUser ? profileUser.username : ''}"/> - Galaxy^bbs</title>
     <link rel="stylesheet" href="${pageContext.request.contextPath}/assets/css/reset.css">
     <link rel="stylesheet" href="${pageContext.request.contextPath}/assets/css/theme.css">
@@ -41,6 +42,7 @@
             <div class="profile-actions">
                 <c:if test="${not empty sessionScope.user and sessionScope.user.id == profileUser.id}">
                 <form action="${pageContext.request.contextPath}/profile/upload" method="post" enctype="multipart/form-data" class="profile-upload-form" data-upload-url="${pageContext.request.contextPath}/profile/upload">
+                    <input type="hidden" name="csrfToken" value="${sessionScope.csrfToken}">
                     <label class="profile-photo-btn profile-photo-btn-upload">
                         <input type="file" name="profilePhoto" accept="image/*" class="profile-photo-input">
                         Upload Photo
@@ -52,8 +54,8 @@
 
             <%-- Tabs: My Posts | My Comments --%>
             <div class="profile-tabs">
-                <a href="${pageContext.request.contextPath}/profile?username=<c:out value="${profileUser.username}"/>&tab=posts" class="profile-tab ${tab == 'posts' ? 'active' : ''}">My Posts</a>
-                <a href="${pageContext.request.contextPath}/profile?username=<c:out value="${profileUser.username}"/>&tab=comments" class="profile-tab ${tab == 'comments' ? 'active' : ''}">My Comments</a>
+                <a href="<c:url value='/profile'><c:param name='username' value='${profileUser.username}'/><c:param name='tab' value='posts'/></c:url>" class="profile-tab ${tab == 'posts' ? 'active' : ''}">My Posts</a>
+                <a href="<c:url value='/profile'><c:param name='username' value='${profileUser.username}'/><c:param name='tab' value='comments'/></c:url>" class="profile-tab ${tab == 'comments' ? 'active' : ''}">My Comments</a>
             </div>
         </div>
 
@@ -75,6 +77,7 @@
                             <button type="button" class="post-menu-trigger" aria-label="Post options" aria-haspopup="true" aria-expanded="false">⋯</button>
                             <div class="post-menu-dropdown" role="menu" aria-hidden="true">
                                 <form method="post" action="${pageContext.request.contextPath}/posts/delete" class="post-menu-form">
+                                    <input type="hidden" name="csrfToken" value="${sessionScope.csrfToken}">
                                     <input type="hidden" name="id" value="${post.id}">
                                     <button type="submit" class="post-menu-item post-menu-item-delete" role="menuitem">Delete Post</button>
                                 </form>

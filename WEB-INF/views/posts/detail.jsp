@@ -1,13 +1,12 @@
 <%@ page language="java" contentType="text/html; charset=UTF-8" pageEncoding="UTF-8"%>
-<%@ page import="util.TimeAgoUtil" %>
-<%@ page import="model.Post" %>
-<%@ page import="model.Comment" %>
 <%@ taglib prefix="c" uri="jakarta.tags.core" %>
 <%@ taglib prefix="fn" uri="jakarta.tags.functions" %>
+<%@ taglib prefix="time" uri="http://galaxy.bbs/tags/time" %>
 <!DOCTYPE html>
 <html>
 <head>
     <meta charset="UTF-8">
+    <meta name="csrf-token" content="${sessionScope.csrfToken}">
     <title>Post Detail - Galaxy^bbs</title>
     <link rel="stylesheet" href="${pageContext.request.contextPath}/assets/css/reset.css">
     <link rel="stylesheet" href="${pageContext.request.contextPath}/assets/css/theme.css">
@@ -39,7 +38,7 @@
                 <div class="detail-content">
                     <div class="post-meta">
                         <span class="community-name"><c:out value="${(empty post.tagName or fn:toLowerCase(post.tagName) == 'general') ? post.authorName : post.tagName}"/></span>
-                        <span class="posted-by">Posted by u/<c:out value="${post.authorName}"/> • <% Post _p = (Post)request.getAttribute("post"); out.print(_p != null && _p.getCreatedAt() != null ? TimeAgoUtil.format(_p.getCreatedAt()) : ""); %></span>
+                        <span class="posted-by">Posted by u/<c:out value="${post.authorName}"/> • <c:out value="${time:timeAgo(post.createdAt)}"/></span>
                     </div>
                     <h1 class="post-title"><c:out value="${post.title}"/></h1>
                     <div class="post-body-text">
@@ -89,6 +88,7 @@
                         Comment as <a href="#"><c:out value="${sessionScope.user.username}"/></a>
                     </div>
                     <form action="${pageContext.request.contextPath}/comments/create" method="post" id="main-comment-form">
+                        <input type="hidden" name="csrfToken" value="${sessionScope.csrfToken}">
                         <input type="hidden" name="postId" value="${post.id}">
                         <textarea name="content" class="comment-textarea" placeholder="What are your thoughts?"></textarea>
                         <div class="comment-actions">

@@ -75,9 +75,6 @@ public class UserDAO {
                     user.setPassword(pwd != null ? pwd.trim() : null);
                     user.setEmail(rs.getString(4));
                     user.setProfileImage(rs.getString(5));
-                    System.out.println("User found via email: " + email);
-                } else {
-                    System.out.println("User not found via email: " + email);
                 }
             }
         } catch (SQLException e) {
@@ -205,20 +202,17 @@ public class UserDAO {
     }
 
     public User checkLogin(String email, String password) {
-        System.out.println("Checking login for: " + email);
         User user = findByEmail(email);
         if (user != null) {
             String stored = user.getPassword();
             if (stored != null && PasswordUtil.verifyPassword(password, stored)) {
                 // Migrate legacy (plain/SHA-256) to bcrypt on next password use
                 if (!stored.startsWith("$2")) {
-                    System.out.println("Migrating legacy password to bcrypt...");
                     updatePassword(user.getId(), (password != null) ? password.trim() : "");
                     user.setPassword(PasswordUtil.hashPassword((password != null) ? password.trim() : ""));
                 }
                 return user;
             }
-            System.out.println("Password mismatch!");
         }
         return null;
     }

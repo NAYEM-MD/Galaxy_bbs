@@ -24,6 +24,7 @@
         </c:if>
 
         <form action="${pageContext.request.contextPath}/auth/reset-password" method="post">
+            <input type="hidden" name="csrfToken" value="${sessionScope.csrfToken}">
             <input type="hidden" name="token" value="${not empty token ? token : param.token}">
 
             <div class="form-group">

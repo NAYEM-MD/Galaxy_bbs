@@ -239,10 +239,21 @@ public class PostDAO {
     public boolean votePoll(int userId, int pollId, int optionId) {
         // Use explicit columns for checkSql too
         String checkSql = "SELECT id FROM poll_votes WHERE poll_id = ? AND user_id = ?";
+        String optionBelongsToPollSql = "SELECT 1 FROM poll_options WHERE id = ? AND poll_id = ?";
         String insertSql = "INSERT INTO poll_votes (poll_id, option_id, user_id) VALUES (?, ?, ?)";
         String updateCountSql = "UPDATE poll_options SET vote_count = vote_count + 1 WHERE id = ?";
         
         try (Connection conn = DBUtil.getConnection()) {
+            // Verify optionId belongs to this poll (prevents voting on another poll's option)
+            try (PreparedStatement optStmt = conn.prepareStatement(optionBelongsToPollSql)) {
+                optStmt.setInt(1, optionId);
+                optStmt.setInt(2, pollId);
+                try (ResultSet rs = optStmt.executeQuery()) {
+                    if (!rs.next()) {
+                        return false; // Option not in this poll
+                    }
+                }
+            }
             // Check if user already voted
             try (PreparedStatement checkStmt = conn.prepareStatement(checkSql)) {
                 checkStmt.setInt(1, pollId);

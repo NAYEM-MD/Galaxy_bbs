@@ -12,6 +12,8 @@ import jakarta.servlet.http.Part;
 
 import java.io.File;
 import java.io.IOException;
+import java.net.URLEncoder;
+import java.nio.charset.StandardCharsets;
 import java.util.UUID;
 
 /**
@@ -35,15 +37,16 @@ public class ProfilePhotoUploadServlet extends HttpServlet {
         }
 
         User user = (User) session.getAttribute("user");
+        String usernameEnc = URLEncoder.encode(user.getUsername(), StandardCharsets.UTF_8);
         Part filePart = request.getPart("profilePhoto");
         if (filePart == null || filePart.getSize() == 0) {
-            response.sendRedirect(request.getContextPath() + "/profile?username=" + user.getUsername());
+            response.sendRedirect(request.getContextPath() + "/profile?username=" + usernameEnc);
             return;
         }
 
         String contentType = filePart.getContentType();
         if (contentType == null || !contentType.startsWith("image/")) {
-            response.sendRedirect(request.getContextPath() + "/profile?username=" + user.getUsername());
+            response.sendRedirect(request.getContextPath() + "/profile?username=" + usernameEnc);
             return;
         }
 
@@ -61,7 +64,7 @@ public class ProfilePhotoUploadServlet extends HttpServlet {
             else extension = ".jpg";
         }
         if (!ALLOWED_IMAGE_EXTENSIONS.contains(extension.toLowerCase())) {
-            response.sendRedirect(request.getContextPath() + "/profile?username=" + user.getUsername() + "&error=invalid_file");
+            response.sendRedirect(request.getContextPath() + "/profile?username=" + usernameEnc + "&error=invalid_file");
             return;
         }
 
@@ -79,7 +82,7 @@ public class ProfilePhotoUploadServlet extends HttpServlet {
             session.setAttribute("user", user);
         }
 
-        response.sendRedirect(request.getContextPath() + "/profile?username=" + user.getUsername());
+        response.sendRedirect(request.getContextPath() + "/profile?username=" + usernameEnc);
     }
 
     private String getSubmittedFileName(Part part) {

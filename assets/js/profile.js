@@ -120,8 +120,10 @@
             if (!blob) return;
             var fd = new FormData();
             fd.append('profilePhoto', blob, 'profile.jpg');
+            var csrfInput = uploadForm && uploadForm.querySelector('input[name="csrfToken"]');
+            if (csrfInput && csrfInput.value) fd.append('csrfToken', csrfInput.value);
             cropSaveBtn.disabled = true;
-            fetch(url, { method: 'POST', body: fd, redirect: 'follow' })
+            fetch(url, { method: 'POST', body: fd, redirect: 'follow', credentials: 'same-origin' })
                 .then(function (r) {
                     if (r.redirected) {
                         window.location.href = r.url;

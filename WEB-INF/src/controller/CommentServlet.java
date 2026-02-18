@@ -18,6 +18,8 @@ import jakarta.servlet.http.HttpSession;
 
 @WebServlet("/comments/*")
 public class CommentServlet extends HttpServlet {
+    private static final int MAX_COMMENT_LENGTH = 5000;
+
     private CommentDAO commentDAO = new CommentDAO();
     private PostDAO postDAO = new PostDAO();
     private NotificationDAO notificationDAO = new NotificationDAO();
@@ -45,6 +47,17 @@ public class CommentServlet extends HttpServlet {
                 return;
             }
             String content = request.getParameter("content");
+            if (content == null || content.trim().isEmpty()) {
+                session.setAttribute("commentError", "Comment cannot be empty.");
+                response.sendRedirect(request.getContextPath() + "/posts/detail?id=" + postId);
+                return;
+            }
+            content = content.trim();
+            if (content.length() > MAX_COMMENT_LENGTH) {
+                session.setAttribute("commentError", "Comment must be at most " + MAX_COMMENT_LENGTH + " characters.");
+                response.sendRedirect(request.getContextPath() + "/posts/detail?id=" + postId);
+                return;
+            }
             Integer parentId = null;
             String parentIdStr = request.getParameter("parentId");
             if (parentIdStr != null && !parentIdStr.trim().isEmpty()) {

@@ -78,8 +78,7 @@ public class AuthServlet extends HttpServlet {
             User user = getUserDAO().checkLogin(email, password);
             if (user != null) {
                 HttpSession session = request.getSession();
-                session.setAttribute("loginUser", user);  // used by AuthFilter
-                session.setAttribute("user", user);      // used by JSPs and other servlets
+                session.setAttribute("user", user);
                 response.sendRedirect(request.getContextPath() + "/posts/feed");
             } else {
                 request.setAttribute("errorMsg", "Invalid email or password");
@@ -101,8 +100,18 @@ public class AuthServlet extends HttpServlet {
                 forwardTo(request, response, "/auth/register.jsp");
                 return;
             }
+            if (!ValidationUtil.isValidUsername(username)) {
+                request.setAttribute("errorMsg", "Username must be 3-30 characters (letters, numbers, underscore, hyphen only).");
+                forwardTo(request, response, "/auth/register.jsp");
+                return;
+            }
             if (getUserDAO().findByEmail(email) != null) {
                 request.setAttribute("errorMsg", "Email already registered");
+                forwardTo(request, response, "/auth/register.jsp");
+                return;
+            }
+            if (getUserDAO().findByUsername(username) != null) {
+                request.setAttribute("errorMsg", "Username already taken");
                 forwardTo(request, response, "/auth/register.jsp");
                 return;
             }
@@ -206,7 +215,8 @@ public class AuthServlet extends HttpServlet {
         int userId = tokenDAO.findUserIdByValidToken(token);
         if (userId <= 0) {
             request.setAttribute("errorMsg", "Reset link is invalid or has expired.");
-            forwardTo(request, response, "/auth/forgot-password.jsp");
+            request.setAttribute("token", token);
+            forwardTo(request, response, "/auth/reset-password.jsp");
             return;
         }
 

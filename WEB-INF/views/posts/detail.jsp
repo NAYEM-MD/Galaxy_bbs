@@ -82,6 +82,10 @@
             </div>
 
             <div class="comment-section">
+                <c:if test="${not empty sessionScope.commentError}">
+                <p class="error-msg"><c:out value="${sessionScope.commentError}"/></p>
+                <c:remove var="commentError" scope="session"/>
+                </c:if>
                 <c:if test="${not empty sessionScope.user}">
                 <div class="comment-input-area">
                     <div class="comment-as">

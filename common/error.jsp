@@ -4,10 +4,7 @@ pageEncoding="UTF-8" isErrorPage="true"%>
 <%
   if (exception != null) {
     java.util.logging.Logger.getLogger("GalaxyBBS").severe(
-      "Error page: " + exception.getMessage());
-    java.io.StringWriter sw = new java.io.StringWriter();
-    exception.printStackTrace(new java.io.PrintWriter(sw));
-    java.util.logging.Logger.getLogger("GalaxyBBS").severe(sw.toString());
+      "Error page: " + exception.getClass().getName() + ": " + exception.getMessage());
   }
 %>
 <!DOCTYPE html>

@@ -316,10 +316,15 @@ public class PostDAO {
 
     private void savePollOption(Connection conn, PollOption option, int pollId) throws SQLException {
         String sql = "INSERT INTO poll_options (poll_id, option_text) VALUES (?, ?)";
-        try (PreparedStatement pstmt = conn.prepareStatement(sql)) {
+        try (PreparedStatement pstmt = conn.prepareStatement(sql, new String[]{"ID"})) {
             pstmt.setInt(1, pollId);
             pstmt.setString(2, option.getOptionText());
             pstmt.executeUpdate();
+            try (ResultSet rs = pstmt.getGeneratedKeys()) {
+                if (rs.next()) {
+                    option.setId(rs.getInt(1));
+                }
+            }
         }
     }
     

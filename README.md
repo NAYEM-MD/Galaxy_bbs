@@ -56,7 +56,7 @@ User Request → Tomcat → Filters → Servlet → DAO → Oracle DB
 3. **Login** (`/auth/login` POST):
    - `AuthServlet` receives email + password
    - `UserDAO.checkLogin()` validates with `PasswordUtil.verifyPassword()` (bcrypt)
-   - On success: `session.setAttribute("loginUser", user)` → Redirect to feed
+   - On success: `session.setAttribute("user", user)` → Redirect to feed
 4. **Register** (`/auth/register` POST):
    - Validation via `ValidationUtil`
    - Password hashed with `PasswordUtil.hashPassword()` (bcrypt)
@@ -229,7 +229,7 @@ Uses `SMTP_USER` and `SMTP_PASSWORD` env vars (e.g. via `set_smtp_env.bat`).
 - **MVC-style**: Servlets = Controllers, JSPs = Views, DAOs = Data layer
 - **DAO pattern**: One DAO per entity (User, Post, Comment, etc.)
 - **Filter chain**: AuthFilter → NotificationFilter → Servlet
-- **Session-based auth**: `loginUser` / `user` in HttpSession
+- **Session-based auth**: `user` in HttpSession
 - **JNDI + fallback**: DB connection via Tomcat pool or env-based DriverManager
 
 ---

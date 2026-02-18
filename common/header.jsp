@@ -1,6 +1,7 @@
 <%@ page language="java" contentType="text/html; charset=UTF-8" pageEncoding="UTF-8"%>
 <%@ page import="model.User" %>
 <%@ taglib prefix="c" uri="jakarta.tags.core" %>
+<%@ taglib prefix="fn" uri="jakarta.tags.functions" %>
 <%
     int unreadCount = 0;
     Object unreadObj = request.getAttribute("unreadCount");
@@ -49,8 +50,10 @@
             <div class="user-menu-container">
             <button id="user-menu-btn" class="user-menu-btn" onclick="toggleUserMenu(event)">
                     <div class="user-avatar-small">
+                        <c:set var="imgPath" value="${sessionScope.user.profileImage}"/>
+                        <c:set var="safeImg" value="${(not empty imgPath and fn:indexOf(imgPath, '..') lt 0 and not fn:startsWith(fn:trim(imgPath), '/'))}"/>
                         <c:choose>
-                            <c:when test="${not empty sessionScope.user.profileImage}">
+                            <c:when test="${safeImg}">
                                 <img src="${pageContext.request.contextPath}/${sessionScope.user.profileImage}" onerror="this.onerror=null; this.src='${pageContext.request.contextPath}/assets/img/default-avatar.svg';" alt="<c:out value="${sessionScope.user.username}"/>">
                             </c:when>
                             <c:otherwise>

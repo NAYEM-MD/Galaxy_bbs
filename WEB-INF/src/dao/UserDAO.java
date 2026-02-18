@@ -1,7 +1,6 @@
 package dao;
 
 import model.User;
-import util.DBUtil;
 import util.PasswordUtil;
 
 import java.sql.Connection;
@@ -9,12 +8,12 @@ import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 
-public class UserDAO {
+public class UserDAO extends BaseDAO {
     
     public User findById(int id) {
         User user = null;
         String sql = "SELECT id, username, password, email, profile_image FROM users WHERE id = ?";
-        try (Connection conn = DBUtil.getConnection();
+        try (Connection conn = getConnection();
              PreparedStatement pstmt = conn.prepareStatement(sql)) {
             pstmt.setInt(1, id);
             try (ResultSet rs = pstmt.executeQuery()) {
@@ -28,7 +27,7 @@ public class UserDAO {
                 }
             }
         } catch (SQLException e) {
-            e.printStackTrace();
+            logError("findById failed", e);
         }
         return user;
     }
@@ -37,7 +36,7 @@ public class UserDAO {
         User user = null;
         String sql = "SELECT id, username, password, email, profile_image FROM users WHERE username = ?";
 
-        try (Connection conn = DBUtil.getConnection();
+        try (Connection conn = getConnection();
              PreparedStatement pstmt = conn.prepareStatement(sql)) {
 
             pstmt.setString(1, username);
@@ -53,7 +52,7 @@ public class UserDAO {
                 }
             }
         } catch (SQLException e) {
-            e.printStackTrace();
+            logError("findByUsername failed", e);
         }
         return user;
     }
@@ -62,7 +61,7 @@ public class UserDAO {
         User user = null;
         String sql = "SELECT id, username, password, email, profile_image FROM users WHERE LOWER(TRIM(email)) = LOWER(TRIM(?))";
 
-        try (Connection conn = DBUtil.getConnection();
+        try (Connection conn = getConnection();
              PreparedStatement pstmt = conn.prepareStatement(sql)) {
 
             pstmt.setString(1, email != null ? email : "");
@@ -78,7 +77,7 @@ public class UserDAO {
                 }
             }
         } catch (SQLException e) {
-            e.printStackTrace();
+            logError("findByEmail failed", e);
         }
         return user;
     }
@@ -86,7 +85,7 @@ public class UserDAO {
     public void save(User user) {
         String sql = "INSERT INTO users (username, password, email) VALUES (?, ?, ?)";
         
-        try (Connection conn = DBUtil.getConnection();
+        try (Connection conn = getConnection();
              PreparedStatement pstmt = conn.prepareStatement(sql)) {
             
             pstmt.setString(1, user.getUsername());
@@ -95,7 +94,7 @@ public class UserDAO {
             pstmt.executeUpdate();
             
         } catch (SQLException e) {
-            e.printStackTrace();
+            logError("save user failed", e);
         }
     }
     
@@ -111,13 +110,13 @@ public class UserDAO {
         User existing = findByEmail(newEmail.trim());
         if (existing != null && existing.getId() != userId) return false;
         String sql = "UPDATE users SET email = ? WHERE id = ?";
-        try (Connection conn = DBUtil.getConnection();
+        try (Connection conn = getConnection();
              PreparedStatement pstmt = conn.prepareStatement(sql)) {
             pstmt.setString(1, newEmail.trim());
             pstmt.setInt(2, userId);
             return pstmt.executeUpdate() == 1;
         } catch (SQLException e) {
-            e.printStackTrace();
+            logError("updateEmail failed", e);
             return false;
         }
     }
@@ -125,13 +124,13 @@ public class UserDAO {
     public boolean updatePassword(int userId, String newPassword) {
         if (newPassword == null || newPassword.trim().isEmpty()) return false;
         String sql = "UPDATE users SET password = ? WHERE id = ?";
-        try (Connection conn = DBUtil.getConnection();
+        try (Connection conn = getConnection();
              PreparedStatement pstmt = conn.prepareStatement(sql)) {
             pstmt.setString(1, PasswordUtil.hashPassword(newPassword.trim()));
             pstmt.setInt(2, userId);
             return pstmt.executeUpdate() == 1;
         } catch (SQLException e) {
-            e.printStackTrace();
+            logError("updatePassword failed", e);
             return false;
         }
     }
@@ -139,13 +138,13 @@ public class UserDAO {
     /** Updates the profile image path for the user. Path is relative to webapp (e.g. uploads/profiles/xxx.jpg). */
     public boolean updateProfileImage(int userId, String relativePath) {
         String sql = "UPDATE users SET profile_image = ? WHERE id = ?";
-        try (Connection conn = DBUtil.getConnection();
+        try (Connection conn = getConnection();
              PreparedStatement pstmt = conn.prepareStatement(sql)) {
             pstmt.setString(1, relativePath);
             pstmt.setInt(2, userId);
             return pstmt.executeUpdate() == 1;
         } catch (SQLException e) {
-            e.printStackTrace();
+            logError("updateProfileImage failed", e);
             return false;
         }
     }
@@ -183,7 +182,7 @@ public class UserDAO {
     }
 
     public boolean deleteUser(int userId) {
-        try (Connection conn = DBUtil.getConnection()) {
+        try (Connection conn = getConnection()) {
             conn.setAutoCommit(false);
             try {
                 boolean ok = deleteUser(userId, conn);
@@ -196,7 +195,7 @@ public class UserDAO {
                 conn.setAutoCommit(true);
             }
         } catch (SQLException e) {
-            e.printStackTrace();
+            logError("deleteUser failed", e);
             return false;
         }
     }

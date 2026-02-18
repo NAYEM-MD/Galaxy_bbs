@@ -1,7 +1,6 @@
 package dao;
 
 import model.Comment;
-import util.DBUtil;
 
 import java.sql.Connection;
 import java.sql.PreparedStatement;
@@ -12,14 +11,14 @@ import java.sql.Types;
 import java.util.ArrayList;
 import java.util.List;
 
-public class CommentDAO {
+public class CommentDAO extends BaseDAO {
     
     public List<Comment> findByPostId(int postId) {
         List<Comment> comments = new ArrayList<>();
         String sql = "SELECT c.id, c.content, c.post_id, c.parent_id, c.user_id, c.created_at, u.username as author_name " +
                      "FROM comments c JOIN users u ON c.user_id = u.id WHERE c.post_id = ? ORDER BY c.created_at ASC";
         
-        try (Connection conn = DBUtil.getConnection();
+        try (Connection conn = getConnection();
              PreparedStatement pstmt = conn.prepareStatement(sql)) {
             
             pstmt.setInt(1, postId);
@@ -39,7 +38,7 @@ public class CommentDAO {
                 }
             }
         } catch (SQLException e) {
-            e.printStackTrace();
+            logError("findByPostId failed", e);
         }
         return comments;
     }
@@ -49,7 +48,7 @@ public class CommentDAO {
         List<Comment> comments = new ArrayList<>();
         String sql = "SELECT c.id, c.content, c.post_id, c.user_id, c.created_at, u.username as author_name, p.title as post_title " +
                      "FROM comments c JOIN users u ON c.user_id = u.id JOIN posts p ON c.post_id = p.id WHERE c.user_id = ? ORDER BY c.created_at DESC";
-        try (Connection conn = DBUtil.getConnection();
+        try (Connection conn = getConnection();
              PreparedStatement pstmt = conn.prepareStatement(sql)) {
             pstmt.setInt(1, userId);
             try (ResultSet rs = pstmt.executeQuery()) {
@@ -67,7 +66,7 @@ public class CommentDAO {
                 }
             }
         } catch (SQLException e) {
-            e.printStackTrace();
+            logError("findByUserId failed", e);
         }
         return comments;
     }
@@ -75,7 +74,7 @@ public class CommentDAO {
     public void save(Comment comment) {
         String sql = "INSERT INTO comments (content, post_id, parent_id, user_id, created_at) VALUES (?, ?, ?, ?, ?)";
         
-        try (Connection conn = DBUtil.getConnection();
+        try (Connection conn = getConnection();
              PreparedStatement pstmt = conn.prepareStatement(sql, new String[]{"ID"})) {
             
             pstmt.setString(1, comment.getContent());
@@ -100,14 +99,14 @@ public class CommentDAO {
             }
             
         } catch (SQLException e) {
-            e.printStackTrace();
+            logError("save comment failed", e);
         }
     }
 
     /** Find comment by id (for delete authorization and postId redirect). */
     public Comment findById(int commentId) {
         String sql = "SELECT c.id, c.content, c.post_id, c.parent_id, c.user_id, c.created_at FROM comments c WHERE c.id = ?";
-        try (Connection conn = DBUtil.getConnection();
+        try (Connection conn = getConnection();
              PreparedStatement pstmt = conn.prepareStatement(sql)) {
             pstmt.setInt(1, commentId);
             try (ResultSet rs = pstmt.executeQuery()) {
@@ -125,19 +124,19 @@ public class CommentDAO {
                 }
             }
         } catch (SQLException e) {
-            e.printStackTrace();
+            logError("findById comment failed", e);
         }
         return null;
     }
 
     public void delete(int commentId) {
         String sql = "DELETE FROM comments WHERE id = ?";
-        try (Connection conn = DBUtil.getConnection();
+        try (Connection conn = getConnection();
              PreparedStatement pstmt = conn.prepareStatement(sql)) {
             pstmt.setInt(1, commentId);
             pstmt.executeUpdate();
         } catch (SQLException e) {
-            e.printStackTrace();
+            logError("delete comment failed", e);
         }
     }
 }

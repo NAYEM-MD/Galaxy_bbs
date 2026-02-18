@@ -48,7 +48,7 @@ public class SystemTest {
             }
         } catch (Exception e) {
             System.out.println("[FAIL] Database connection error: " + e.getMessage());
-            e.printStackTrace();
+            util.LogUtil.logError(util.LogUtil.getLogger(SystemTest.class), "DB connection", e);
             allPassed = false;
         }
 
@@ -124,7 +124,7 @@ public class SystemTest {
 
         } catch (Exception e) {
             System.out.println("[FAIL] Logic test error: " + e.getMessage());
-            e.printStackTrace();
+            util.LogUtil.logError(util.LogUtil.getLogger(SystemTest.class), "Logic test", e);
             allPassed = false;
         }
 

@@ -4,13 +4,12 @@ import java.sql.*;
 import java.util.ArrayList;
 import java.util.List;
 import model.Notification;
-import util.DBUtil;
 
-public class NotificationDAO {
+public class NotificationDAO extends BaseDAO {
 
     public void createNotification(Notification notification) {
         String sql = "INSERT INTO notifications (user_id, actor_id, post_id, comment_id, type) VALUES (?, ?, ?, ?, ?)";
-        try (Connection conn = DBUtil.getConnection();
+        try (Connection conn = getConnection();
              PreparedStatement pstmt = conn.prepareStatement(sql)) {
             pstmt.setInt(1, notification.getUserId());
             pstmt.setInt(2, notification.getActorId());
@@ -23,13 +22,13 @@ public class NotificationDAO {
             pstmt.setString(5, notification.getType());
             pstmt.executeUpdate();
         } catch (SQLException e) {
-            e.printStackTrace();
+            logError("createNotification failed", e);
         }
     }
 
     public int getUnreadCount(int userId) {
         String sql = "SELECT COUNT(*) FROM notifications WHERE user_id = ? AND is_read = 0";
-        try (Connection conn = DBUtil.getConnection();
+        try (Connection conn = getConnection();
              PreparedStatement pstmt = conn.prepareStatement(sql)) {
             pstmt.setInt(1, userId);
             try (ResultSet rs = pstmt.executeQuery()) {
@@ -38,7 +37,7 @@ public class NotificationDAO {
                 }
             }
         } catch (SQLException e) {
-            e.printStackTrace();
+            logError("getUnreadCount failed", e);
         }
         return 0;
     }
@@ -55,7 +54,7 @@ public class NotificationDAO {
                      "WHERE n.user_id = ? " +
                      "ORDER BY n.created_at DESC";
         
-        try (Connection conn = DBUtil.getConnection();
+        try (Connection conn = getConnection();
              PreparedStatement pstmt = conn.prepareStatement(sql)) {
             pstmt.setInt(1, userId);
             try (ResultSet rs = pstmt.executeQuery()) {
@@ -77,19 +76,19 @@ public class NotificationDAO {
                 }
             }
         } catch (SQLException e) {
-            e.printStackTrace();
+            logError("getNotificationsByUserId failed", e);
         }
         return notifications;
     }
 
     public void markAsRead(int userId) {
         String sql = "UPDATE notifications SET is_read = 1 WHERE user_id = ?";
-        try (Connection conn = DBUtil.getConnection();
+        try (Connection conn = getConnection();
              PreparedStatement pstmt = conn.prepareStatement(sql)) {
             pstmt.setInt(1, userId);
             pstmt.executeUpdate();
         } catch (SQLException e) {
-            e.printStackTrace();
+            logError("markAsRead failed", e);
         }
     }
 }

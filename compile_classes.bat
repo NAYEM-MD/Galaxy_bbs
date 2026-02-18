@@ -107,6 +107,13 @@ dir /s /b "%SRC%\*.java" 2>nul >"%SRC_LIST%"
 if not exist "%SRC_LIST%" goto no_sources
 findstr /r "." "%SRC_LIST%" >nul 2>&1
 if errorlevel 1 goto no_sources
+REM If JUnit not in lib, exclude test sources so main app compiles without running download_deps
+set "JUNIT_JAR="
+for %%f in ("%LIB%\junit*.jar") do set "JUNIT_JAR=1"
+if not defined JUNIT_JAR (
+    findstr /v "\test\" "%SRC_LIST%" > "%SRC_LIST%.tmp" 2>nul
+    if exist "%SRC_LIST%.tmp" move /y "%SRC_LIST%.tmp" "%SRC_LIST%" >nul
+)
 goto have_sources
 :no_sources
 echo ERROR: No .java files found under %SRC%

@@ -4,9 +4,12 @@ import dao.UserDAO;
 import dao.PasswordResetTokenDAO;
 import model.User;
 import util.EmailUtil;
+import util.LogUtil;
+import util.RateLimiter;
 import util.ValidationUtil;
 
 import java.io.IOException;
+import java.util.logging.Logger;
 import jakarta.servlet.ServletException;
 import jakarta.servlet.http.HttpServlet;
 import jakarta.servlet.http.HttpServletRequest;
@@ -17,6 +20,10 @@ import jakarta.servlet.RequestDispatcher;
 public class AuthServlet extends HttpServlet {
     private UserDAO userDAO; // lazy init in doPost so doGet never touches DB
     private PasswordResetTokenDAO tokenDAO = new PasswordResetTokenDAO();
+
+    private static final RateLimiter LOGIN_RATE_LIMITER = new RateLimiter(5, 60_000);   // 5 per minute
+    private static final RateLimiter FORGOT_PASSWORD_RATE_LIMITER = new RateLimiter(3, 60_000); // 3 per minute
+    private static final Logger LOG = LogUtil.getLogger(AuthServlet.class);
 
     protected void doGet(HttpServletRequest request, HttpServletResponse response) throws ServletException, IOException {
         String path = request.getServletPath(); // exact: /auth/login, /auth/register, /auth/logout, /auth/forgot-password, /auth/reset-password
@@ -68,6 +75,12 @@ public class AuthServlet extends HttpServlet {
     protected void doPost(HttpServletRequest request, HttpServletResponse response) throws ServletException, IOException {
         String path = request.getServletPath();
         if ("/auth/login".equals(path)) {
+            String clientIp = getClientIp(request);
+            if (!LOGIN_RATE_LIMITER.allow("login:" + clientIp)) {
+                request.setAttribute("errorMsg", "Too many login attempts. Please try again in a minute.");
+                forwardTo(request, response, "/auth/login.jsp");
+                return;
+            }
             String email = request.getParameter("email");
             String password = request.getParameter("password");
             if (email != null) email = email.trim();
@@ -78,6 +91,7 @@ public class AuthServlet extends HttpServlet {
             User user = getUserDAO().checkLogin(email, password);
             if (user != null) {
                 HttpSession session = request.getSession();
+                request.changeSessionId(); // Mitigate session fixation
                 session.setAttribute("user", user);
                 response.sendRedirect(request.getContextPath() + "/posts/feed");
             } else {
@@ -138,6 +152,12 @@ public class AuthServlet extends HttpServlet {
     }
 
     private void handleForgotPassword(HttpServletRequest request, HttpServletResponse response) throws ServletException, IOException {
+        String clientIp = getClientIp(request);
+        if (!FORGOT_PASSWORD_RATE_LIMITER.allow("forgot:" + clientIp)) {
+            request.setAttribute("errorMsg", "Too many password reset requests. Please try again in a minute.");
+            forwardTo(request, response, "/auth/forgot-password.jsp");
+            return;
+        }
         String email = request.getParameter("email");
         if (email != null) email = email.trim();
         if (email == null) email = "";
@@ -173,12 +193,7 @@ public class AuthServlet extends HttpServlet {
                 + "Best regards,\n"
                 + "Galaxy_BBS Team");
         } catch (Throwable t) {
-            // Most common causes:
-            // - password_reset_tokens table does not exist
-            // - JDBC error
-            // - Jakarta Mail / SMTP misconfiguration
-            System.err.println("[Galaxy_BBS] Failed to start password reset flow: " + t.getMessage());
-            t.printStackTrace();
+            LogUtil.logError(LOG, "Password reset flow failed", t);
             request.setAttribute("errorMsg", "We could not send a reset email right now. Please try again later.");
         }
 
@@ -231,4 +246,11 @@ public class AuthServlet extends HttpServlet {
         }
     }
 
+    private String getClientIp(HttpServletRequest request) {
+        String xff = request.getHeader("X-Forwarded-For");
+        if (xff != null && !xff.trim().isEmpty()) {
+            return xff.split(",")[0].trim();
+        }
+        return request.getRemoteAddr() != null ? request.getRemoteAddr() : "unknown";
+    }
 }

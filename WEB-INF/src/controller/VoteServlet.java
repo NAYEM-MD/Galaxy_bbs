@@ -2,8 +2,10 @@ package controller;
 
 import dao.VoteDAO;
 import model.User;
+import util.LogUtil;
 
 import java.io.IOException;
+import java.util.logging.Logger;
 import jakarta.servlet.ServletException;
 import jakarta.servlet.annotation.WebServlet;
 import jakarta.servlet.http.HttpServlet;
@@ -13,6 +15,7 @@ import jakarta.servlet.http.HttpSession;
 
 @WebServlet("/vote")
 public class VoteServlet extends HttpServlet {
+    private static final Logger LOG = LogUtil.getLogger(VoteServlet.class);
     private VoteDAO voteDAO = new VoteDAO();
 
     protected void doPost(HttpServletRequest request, HttpServletResponse response) throws ServletException, IOException {
@@ -48,9 +51,9 @@ public class VoteServlet extends HttpServlet {
             response.setStatus(HttpServletResponse.SC_BAD_REQUEST);
             response.getWriter().write("{\"success\": false, \"message\": \"Invalid parameters\"}");
         } catch (Exception e) {
-            e.printStackTrace();
+            LogUtil.logError(LOG, "Vote failed", e);
             response.setStatus(HttpServletResponse.SC_INTERNAL_SERVER_ERROR);
-            response.getWriter().write("{\"success\": false, \"message\": \"Server error\"}");
+            response.getWriter().write("{\"success\": false, \"message\": \"Server error. Please try again.\"}");
         }
     }
 }

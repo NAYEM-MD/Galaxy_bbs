@@ -3,38 +3,52 @@ package dao;
 import model.Post;
 import model.Poll;
 import model.PollOption;
-import util.DBUtil;
 
 import java.sql.*;
 import java.util.ArrayList;
 import java.util.List;
 
-public class PostDAO {
+public class PostDAO extends BaseDAO {
     
     public List<Post> findAll() {
         return findAll(0);
     }
 
     public List<Post> findAll(int currentUserId) {
+        return findAll(currentUserId, 0, Integer.MAX_VALUE);
+    }
+
+    /** Total number of posts (for pagination). */
+    public int countAll() {
+        String sql = "SELECT COUNT(*) FROM posts";
+        try (Connection conn = getConnection();
+             PreparedStatement pstmt = conn.prepareStatement(sql);
+             ResultSet rs = pstmt.executeQuery()) {
+            if (rs.next()) return rs.getInt(1);
+        } catch (SQLException e) {
+            logError("countAll failed", e);
+        }
+        return 0;
+    }
+
+    /** Paginated feed: OFFSET/FETCH (Oracle 12c+). */
+    public List<Post> findAll(int currentUserId, int offset, int limit) {
         List<Post> posts = new ArrayList<>();
-        // Join with users to get author name, join tags for tag name,
-        // subquery for vote count, comment count and user vote
-        // Explicit columns for ORA-17056 fix
         String sql = "SELECT p.id, p.title, p.content, p.tag_id, p.media_url, p.media_type, p.user_id, p.created_at, " +
                      "u.username as author_name, t.name as tag_name, " +
                      "(SELECT COALESCE(SUM(v.vote_value), 0) FROM votes v WHERE v.post_id = p.id) as vote_count, " +
                      "(SELECT COUNT(*) FROM comments c WHERE c.post_id = p.id) as comment_count, " +
                      "(SELECT v2.vote_value FROM votes v2 WHERE v2.post_id = p.id AND v2.user_id = ?) as user_vote " +
-                     "FROM posts p JOIN users u ON p.user_id = u.id LEFT JOIN tags t ON p.tag_id = t.id ORDER BY p.created_at DESC";
-        
-        try (Connection conn = DBUtil.getConnection();
+                     "FROM posts p JOIN users u ON p.user_id = u.id LEFT JOIN tags t ON p.tag_id = t.id " +
+                     "ORDER BY p.created_at DESC OFFSET ? ROWS FETCH NEXT ? ROWS ONLY";
+        try (Connection conn = getConnection();
              PreparedStatement pstmt = conn.prepareStatement(sql)) {
-            
             pstmt.setInt(1, currentUserId);
+            pstmt.setInt(2, offset);
+            pstmt.setInt(3, limit);
             try (ResultSet rs = pstmt.executeQuery()) {
                 while (rs.next()) {
                     Post post = mapResultSetToPost(rs);
-                    // Load poll if applicable
                     if ("poll".equals(post.getMediaType())) {
                         post.setPoll(getPollByPostId(conn, post.getId()));
                     }
@@ -42,7 +56,7 @@ public class PostDAO {
                 }
             }
         } catch (SQLException e) {
-            e.printStackTrace();
+            logError("findAll paginated failed", e);
         }
         return posts;
     }
@@ -51,6 +65,29 @@ public class PostDAO {
      * Search posts by title or author username (case-insensitive).
      */
     public List<Post> search(String query, int currentUserId) {
+        return search(query, currentUserId, 0, Integer.MAX_VALUE);
+    }
+
+    /** Count of search results (for pagination). */
+    public int countSearch(String query) {
+        String sql = "SELECT COUNT(*) FROM posts p JOIN users u ON p.user_id = u.id " +
+                     "WHERE LOWER(p.title) LIKE ? OR LOWER(u.username) LIKE ?";
+        try (Connection conn = getConnection();
+             PreparedStatement pstmt = conn.prepareStatement(sql)) {
+            String pattern = "%" + query.toLowerCase() + "%";
+            pstmt.setString(1, pattern);
+            pstmt.setString(2, pattern);
+            try (ResultSet rs = pstmt.executeQuery()) {
+                if (rs.next()) return rs.getInt(1);
+            }
+        } catch (SQLException e) {
+            logError("countSearch failed", e);
+        }
+        return 0;
+    }
+
+    /** Paginated search. */
+    public List<Post> search(String query, int currentUserId, int offset, int limit) {
         List<Post> posts = new ArrayList<>();
         String sql = "SELECT p.id, p.title, p.content, p.tag_id, p.media_url, p.media_type, p.user_id, p.created_at, " +
                      "u.username as author_name, t.name as tag_name, " +
@@ -59,16 +96,15 @@ public class PostDAO {
                      "(SELECT v2.vote_value FROM votes v2 WHERE v2.post_id = p.id AND v2.user_id = ?) as user_vote " +
                      "FROM posts p JOIN users u ON p.user_id = u.id LEFT JOIN tags t ON p.tag_id = t.id " +
                      "WHERE LOWER(p.title) LIKE ? OR LOWER(u.username) LIKE ? " +
-                     "ORDER BY p.created_at DESC";
-
-        try (Connection conn = DBUtil.getConnection();
+                     "ORDER BY p.created_at DESC OFFSET ? ROWS FETCH NEXT ? ROWS ONLY";
+        try (Connection conn = getConnection();
              PreparedStatement pstmt = conn.prepareStatement(sql)) {
-
             String pattern = "%" + query.toLowerCase() + "%";
             pstmt.setInt(1, currentUserId);
             pstmt.setString(2, pattern);
             pstmt.setString(3, pattern);
-
+            pstmt.setInt(4, offset);
+            pstmt.setInt(5, limit);
             try (ResultSet rs = pstmt.executeQuery()) {
                 while (rs.next()) {
                     Post post = mapResultSetToPost(rs);
@@ -79,7 +115,7 @@ public class PostDAO {
                 }
             }
         } catch (SQLException e) {
-            e.printStackTrace();
+            logError("search paginated failed", e);
         }
         return posts;
     }
@@ -93,7 +129,7 @@ public class PostDAO {
                      "(SELECT COUNT(*) FROM comments c WHERE c.post_id = p.id) as comment_count, " +
                      "(SELECT v2.vote_value FROM votes v2 WHERE v2.post_id = p.id AND v2.user_id = ?) as user_vote " +
                      "FROM posts p JOIN users u ON p.user_id = u.id LEFT JOIN tags t ON p.tag_id = t.id WHERE p.user_id = ? ORDER BY p.created_at DESC";
-        try (Connection conn = DBUtil.getConnection();
+        try (Connection conn = getConnection();
              PreparedStatement pstmt = conn.prepareStatement(sql)) {
             pstmt.setInt(1, currentUserId);
             pstmt.setInt(2, userId);
@@ -107,7 +143,7 @@ public class PostDAO {
                 }
             }
         } catch (SQLException e) {
-            e.printStackTrace();
+            logError("findByUserId failed", e);
         }
         return posts;
     }
@@ -125,7 +161,7 @@ public class PostDAO {
                      "(SELECT v2.vote_value FROM votes v2 WHERE v2.post_id = p.id AND v2.user_id = ?) as user_vote " +
                      "FROM posts p JOIN users u ON p.user_id = u.id LEFT JOIN tags t ON p.tag_id = t.id WHERE p.id = ?";
         
-        try (Connection conn = DBUtil.getConnection();
+        try (Connection conn = getConnection();
              PreparedStatement pstmt = conn.prepareStatement(sql)) {
             
             pstmt.setInt(1, currentUserId);
@@ -140,7 +176,7 @@ public class PostDAO {
                 }
             }
         } catch (SQLException e) {
-            e.printStackTrace();
+            logError("findById failed", e);
         }
         return post;
     }
@@ -173,7 +209,7 @@ public class PostDAO {
         String deleteComments = "DELETE FROM comments WHERE post_id = ?";
         String deleteVotes = "DELETE FROM votes WHERE post_id = ?";
         String deletePost = "DELETE FROM posts WHERE id = ?";
-        try (Connection conn = DBUtil.getConnection()) {
+        try (Connection conn = getConnection()) {
             conn.setAutoCommit(false);
             try {
                 try (PreparedStatement pstmt = conn.prepareStatement(deleteComments)) {
@@ -196,14 +232,14 @@ public class PostDAO {
                 conn.setAutoCommit(true);
             }
         } catch (SQLException e) {
-            e.printStackTrace();
+            logError("delete post failed", e);
         }
     }
 
     public void save(Post post) {
         String sql = "INSERT INTO posts (title, content, tag_id, user_id, media_url, media_type, created_at) VALUES (?, ?, ?, ?, ?, ?, ?)";
         
-        try (Connection conn = DBUtil.getConnection();
+        try (Connection conn = getConnection();
              PreparedStatement pstmt = conn.prepareStatement(sql, new String[]{"ID"})) { // Explicitly request generated key column "ID"
             
             pstmt.setString(1, post.getTitle());
@@ -232,7 +268,7 @@ public class PostDAO {
             }
             
         } catch (SQLException e) {
-            e.printStackTrace();
+            logError("save post failed", e);
         }
     }
     
@@ -243,7 +279,7 @@ public class PostDAO {
         String insertSql = "INSERT INTO poll_votes (poll_id, option_id, user_id) VALUES (?, ?, ?)";
         String updateCountSql = "UPDATE poll_options SET vote_count = vote_count + 1 WHERE id = ?";
         
-        try (Connection conn = DBUtil.getConnection()) {
+        try (Connection conn = getConnection()) {
             // Verify optionId belongs to this poll (prevents voting on another poll's option)
             try (PreparedStatement optStmt = conn.prepareStatement(optionBelongsToPollSql)) {
                 optStmt.setInt(1, optionId);
@@ -291,7 +327,7 @@ public class PostDAO {
             }
             
         } catch (SQLException e) {
-            e.printStackTrace();
+            logError("votePoll failed", e);
         }
         return false;
     }
@@ -329,7 +365,7 @@ public class PostDAO {
     }
     
     public Poll getPoll(int pollId) {
-        try (Connection conn = DBUtil.getConnection()) {
+        try (Connection conn = getConnection()) {
             Poll poll = new Poll();
             // Explicit columns
             String sql = "SELECT id, post_id, question FROM polls WHERE id = ?";
@@ -346,7 +382,7 @@ public class PostDAO {
             }
             return poll;
         } catch (SQLException e) {
-            e.printStackTrace();
+            logError("getPoll failed", e);
         }
         return null;
     }

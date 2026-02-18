@@ -2,6 +2,7 @@ package controller;
 
 import dao.UserDAO;
 import model.User;
+import util.FileTypeUtil;
 
 import jakarta.servlet.ServletException;
 import jakarta.servlet.http.HttpServlet;
@@ -10,8 +11,10 @@ import jakarta.servlet.http.HttpServletResponse;
 import jakarta.servlet.http.HttpSession;
 import jakarta.servlet.http.Part;
 
+import java.io.ByteArrayInputStream;
 import java.io.File;
 import java.io.IOException;
+import java.io.InputStream;
 import java.net.URLEncoder;
 import java.nio.charset.StandardCharsets;
 import java.util.UUID;
@@ -25,8 +28,9 @@ public class ProfilePhotoUploadServlet extends HttpServlet {
     private UserDAO userDAO = new UserDAO();
 
     private static final String UPLOAD_SUBDIR = "uploads" + File.separator + "profiles";
-    private static final java.util.Set<String> ALLOWED_IMAGE_EXTENSIONS = java.util.Set.of(".jpg", ".jpeg", ".png", ".gif", ".webp", ".bmp");
     private static final String RELATIVE_PATH_PREFIX = "uploads/profiles/";
+    /** Max profile photo size 5MB. */
+    private static final int MAX_FILE_SIZE = 5 * 1024 * 1024;
 
     @Override
     protected void doPost(HttpServletRequest request, HttpServletResponse response) throws ServletException, IOException {
@@ -43,27 +47,24 @@ public class ProfilePhotoUploadServlet extends HttpServlet {
             response.sendRedirect(request.getContextPath() + "/profile?username=" + usernameEnc);
             return;
         }
-
-        String contentType = filePart.getContentType();
-        if (contentType == null || !contentType.startsWith("image/")) {
-            response.sendRedirect(request.getContextPath() + "/profile?username=" + usernameEnc);
+        if (filePart.getSize() > MAX_FILE_SIZE) {
+            response.sendRedirect(request.getContextPath() + "/profile?username=" + usernameEnc + "&error=file_too_large");
             return;
         }
 
-        String fileName = getSubmittedFileName(filePart);
-        String extension = "";
-        if (fileName != null) {
-            int i = fileName.lastIndexOf('.');
-            if (i > 0) extension = fileName.substring(i);
+        // Validate by magic bytes (server-side); Content-Type can be spoofed
+        byte[] fileBytes;
+        try {
+            fileBytes = readAllBytes(filePart.getInputStream(), MAX_FILE_SIZE);
+        } catch (IOException e) {
+            response.sendRedirect(request.getContextPath() + "/profile?username=" + usernameEnc + "&error=file_too_large");
+            return;
         }
-        if (extension.isEmpty()) {
-            if (contentType.contains("jpeg") || contentType.contains("jpg")) extension = ".jpg";
-            else if (contentType.contains("png")) extension = ".png";
-            else if (contentType.contains("gif")) extension = ".gif";
-            else if (contentType.contains("webp")) extension = ".webp";
-            else extension = ".jpg";
+        String extension;
+        try (InputStream in = new ByteArrayInputStream(fileBytes)) {
+            extension = FileTypeUtil.detectImageExtension(in);
         }
-        if (!ALLOWED_IMAGE_EXTENSIONS.contains(extension.toLowerCase())) {
+        if (extension == null || !FileTypeUtil.ALLOWED_IMAGE_EXTENSIONS.contains(extension.toLowerCase())) {
             response.sendRedirect(request.getContextPath() + "/profile?username=" + usernameEnc + "&error=invalid_file");
             return;
         }
@@ -74,7 +75,19 @@ public class ProfilePhotoUploadServlet extends HttpServlet {
         if (!uploadDir.exists()) uploadDir.mkdirs();
 
         File dest = new File(uploadDir, uniqueFileName);
-        filePart.write(dest.getAbsolutePath());
+        // Sandbox: ensure dest stays under uploadDir (prevent path traversal)
+        try {
+            String canonicalDest = dest.getCanonicalPath();
+            String canonicalDir = uploadDir.getCanonicalPath();
+            if (!canonicalDest.startsWith(canonicalDir + File.separator) && !canonicalDest.equals(canonicalDir)) {
+                response.sendRedirect(request.getContextPath() + "/profile?username=" + usernameEnc + "&error=invalid_file");
+                return;
+            }
+        } catch (java.io.IOException e) {
+            response.sendRedirect(request.getContextPath() + "/profile?username=" + usernameEnc + "&error=invalid_file");
+            return;
+        }
+        java.nio.file.Files.write(dest.toPath(), fileBytes);
 
         String relativePath = RELATIVE_PATH_PREFIX + uniqueFileName;
         if (userDAO.updateProfileImage(user.getId(), relativePath)) {
@@ -83,6 +96,17 @@ public class ProfilePhotoUploadServlet extends HttpServlet {
         }
 
         response.sendRedirect(request.getContextPath() + "/profile?username=" + usernameEnc);
+    }
+
+    private static byte[] readAllBytes(InputStream in, int maxSize) throws IOException {
+        java.io.ByteArrayOutputStream out = new java.io.ByteArrayOutputStream();
+        byte[] buf = new byte[8192];
+        int n;
+        while ((n = in.read(buf)) != -1) {
+            out.write(buf, 0, n);
+            if (out.size() > maxSize) throw new IOException("File too large");
+        }
+        return out.toByteArray();
     }
 
     private String getSubmittedFileName(Part part) {

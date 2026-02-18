@@ -113,6 +113,24 @@
                 </c:if>
             </c:otherwise>
             </c:choose>
+
+            <c:if test="${totalPages != null and totalPages > 1}">
+            <div class="pagination" style="margin-top: 16px; display: flex; gap: 8px; flex-wrap: wrap; align-items: center;">
+                <span style="font-size: 14px; color: var(--text-muted, #666);">Page ${currentPage} of ${totalPages} (${totalPosts} posts)</span>
+                <c:if test="${currentPage > 1}">
+                    <c:url value="/posts/feed" var="prevUrl"><c:param name="page" value="${currentPage - 1}"/><c:if test="${not empty searchQuery}"><c:param name="q" value="${searchQuery}"/></c:if></c:url>
+                    <a href="${prevUrl}" class="pagination-link">← Prev</a>
+                </c:if>
+                <c:forEach begin="1" end="${totalPages}" var="p">
+                    <c:if test="${p == currentPage}"><span class="pagination-current" style="padding: 6px 12px; background: var(--accent, #4a9); color: white; border-radius: 4px;">${p}</span></c:if>
+                    <c:if test="${p != currentPage}"><c:url value="/posts/feed" var="pageUrl"><c:param name="page" value="${p}"/><c:if test="${not empty searchQuery}"><c:param name="q" value="${searchQuery}"/></c:if></c:url><a href="${pageUrl}" class="pagination-link">${p}</a></c:if>
+                </c:forEach>
+                <c:if test="${currentPage < totalPages}">
+                    <c:url value="/posts/feed" var="nextUrl"><c:param name="page" value="${currentPage + 1}"/><c:if test="${not empty searchQuery}"><c:param name="q" value="${searchQuery}"/></c:if></c:url>
+                    <a href="${nextUrl}" class="pagination-link">Next →</a>
+                </c:if>
+            </div>
+            </c:if>
         </div>
 
     </div>

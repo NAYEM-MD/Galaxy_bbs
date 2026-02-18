@@ -35,6 +35,18 @@ if not defined MAIL_JAR (
     echo jakarta.mail already exists.
 )
 
+REM JUnit 4 + Hamcrest (for unit tests)
+if not exist "%LIB%\junit-4.13.2.jar" (
+    echo Downloading junit-4.13.2.jar...
+    powershell -NoProfile -Command "Invoke-WebRequest -Uri '%MAVEN%/junit/junit/4.13.2/junit-4.13.2.jar' -OutFile '%LIB%\junit-4.13.2.jar' -UseBasicParsing"
+    if exist "%LIB%\junit-4.13.2.jar" (echo   OK) else (echo   FAILED)
+) else (echo junit-4.13.2.jar already exists.)
+if not exist "%LIB%\hamcrest-core-2.2.jar" (
+    echo Downloading hamcrest-core-2.2.jar...
+    powershell -NoProfile -Command "Invoke-WebRequest -Uri '%MAVEN%/org/hamcrest/hamcrest-core/2.2/hamcrest-core-2.2.jar' -OutFile '%LIB%\hamcrest-core-2.2.jar' -UseBasicParsing"
+    if exist "%LIB%\hamcrest-core-2.2.jar" (echo   OK) else (echo   FAILED)
+) else (echo hamcrest-core-2.2.jar already exists.)
+
 echo.
 echo NOTE: ojdbc8.jar (Oracle JDBC) is NOT auto-downloaded.
 echo       Add it manually to WEB-INF\lib from Oracle or Maven.

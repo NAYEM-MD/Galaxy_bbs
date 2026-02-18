@@ -1,13 +1,11 @@
 package dao;
 
-import util.DBUtil;
-
 import java.sql.Connection;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 
-public class VoteDAO {
+public class VoteDAO extends BaseDAO {
 
     // Cast a vote (insert or update)
     // Returns the new total vote count for the post
@@ -18,7 +16,7 @@ public class VoteDAO {
         String updateSql = "UPDATE votes SET vote_value = ? WHERE user_id = ? AND post_id = ?";
         String deleteSql = "DELETE FROM votes WHERE user_id = ? AND post_id = ?";
 
-        try (Connection conn = DBUtil.getConnection()) {
+        try (Connection conn = getConnection()) {
             int existingValue = 0;
             boolean exists = false;
 
@@ -63,14 +61,14 @@ public class VoteDAO {
             return getVoteCount(postId);
 
         } catch (SQLException e) {
-            e.printStackTrace();
+            logError("vote failed", e);
             return 0;
         }
     }
 
     public int getVoteCount(int postId) {
         String sql = "SELECT SUM(vote_value) as total FROM votes WHERE post_id = ?";
-        try (Connection conn = DBUtil.getConnection();
+        try (Connection conn = getConnection();
                 PreparedStatement pstmt = conn.prepareStatement(sql)) {
 
             pstmt.setInt(1, postId);
@@ -80,14 +78,14 @@ public class VoteDAO {
                 }
             }
         } catch (SQLException e) {
-            e.printStackTrace();
+            logError("getVoteCount failed", e);
         }
         return 0;
     }
 
     public int getUserVote(int userId, int postId) {
         String sql = "SELECT vote_value FROM votes WHERE user_id = ? AND post_id = ?";
-        try (Connection conn = DBUtil.getConnection();
+        try (Connection conn = getConnection();
                 PreparedStatement pstmt = conn.prepareStatement(sql)) {
 
             pstmt.setInt(1, userId);
@@ -98,7 +96,7 @@ public class VoteDAO {
                 }
             }
         } catch (SQLException e) {
-            e.printStackTrace();
+            logError("getUserVote failed", e);
         }
         return 0;
     }

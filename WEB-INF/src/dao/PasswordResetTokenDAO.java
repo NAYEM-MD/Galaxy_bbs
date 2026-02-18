@@ -1,7 +1,6 @@
 package dao;
 
 import model.PasswordResetToken;
-import util.DBUtil;
 import util.PasswordUtil;
 
 import java.sql.Connection;
@@ -14,7 +13,7 @@ import java.time.Instant;
 /**
  * DAO for managing password reset tokens.
  */
-public class PasswordResetTokenDAO {
+public class PasswordResetTokenDAO extends BaseDAO {
 
     /**
      * Creates a new reset token for the given user, invalidating any previous tokens.
@@ -27,7 +26,7 @@ public class PasswordResetTokenDAO {
         String deleteSql = "DELETE FROM password_reset_tokens WHERE user_id = ?";
         String insertSql = "INSERT INTO password_reset_tokens (user_id, token_hash, expires_at, used) VALUES (?, ?, ?, 0)";
         String tokenHash = PasswordUtil.hashForToken(rawToken);
-        try (Connection conn = DBUtil.getConnection()) {
+        try (Connection conn = getConnection()) {
             conn.setAutoCommit(false);
             try (PreparedStatement del = conn.prepareStatement(deleteSql)) {
                 del.setInt(1, userId);
@@ -41,7 +40,7 @@ public class PasswordResetTokenDAO {
             }
             conn.commit();
         } catch (SQLException e) {
-            e.printStackTrace();
+            logError("createToken failed", e);
         }
     }
 
@@ -53,7 +52,7 @@ public class PasswordResetTokenDAO {
         String tokenHash = PasswordUtil.hashForToken(rawToken);
         String sql = "SELECT user_id FROM password_reset_tokens " +
                      "WHERE token_hash = ? AND used = 0 AND expires_at > SYSTIMESTAMP";
-        try (Connection conn = DBUtil.getConnection();
+        try (Connection conn = getConnection();
              PreparedStatement ps = conn.prepareStatement(sql)) {
             ps.setString(1, tokenHash);
             try (ResultSet rs = ps.executeQuery()) {
@@ -62,7 +61,7 @@ public class PasswordResetTokenDAO {
                 }
             }
         } catch (SQLException e) {
-            e.printStackTrace();
+            logError("findUserIdByValidToken failed", e);
         }
         return -1;
     }
@@ -73,12 +72,12 @@ public class PasswordResetTokenDAO {
     public void markTokenUsed(String rawToken) {
         String tokenHash = PasswordUtil.hashForToken(rawToken);
         String sql = "UPDATE password_reset_tokens SET used = 1 WHERE token_hash = ?";
-        try (Connection conn = DBUtil.getConnection();
+        try (Connection conn = getConnection();
              PreparedStatement ps = conn.prepareStatement(sql)) {
             ps.setString(1, tokenHash);
             ps.executeUpdate();
         } catch (SQLException e) {
-            e.printStackTrace();
+            logError("markTokenUsed failed", e);
         }
     }
 }

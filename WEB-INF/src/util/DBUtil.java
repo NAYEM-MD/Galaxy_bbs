@@ -6,6 +6,7 @@ import javax.sql.DataSource;
 import java.sql.Connection;
 import java.sql.DriverManager;
 import java.sql.SQLException;
+import java.util.logging.Logger;
 
 /**
  * Database connection utility. Uses Tomcat JDBC pool (JNDI) when available,
@@ -13,14 +14,14 @@ import java.sql.SQLException;
  * Set DB_URL, DB_USER, DB_PASSWORD when not using JNDI.
  */
 public class DBUtil {
+    private static final Logger LOG = LogUtil.getLogger(DBUtil.class);
     private static final String JNDI_NAME = "java:comp/env/jdbc/GalaxyBBS";
 
     static {
         try {
             Class.forName("oracle.jdbc.OracleDriver");
         } catch (ClassNotFoundException e) {
-            e.printStackTrace();
-            System.err.println("Oracle JDBC Driver not found. Please add ojdbc8.jar to WEB-INF/lib");
+            LogUtil.logError(LOG, "Oracle JDBC Driver not found. Add ojdbc8.jar to WEB-INF/lib", e);
         }
     }
 

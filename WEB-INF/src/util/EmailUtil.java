@@ -12,6 +12,7 @@ import jakarta.mail.internet.MimeMessage;
 import java.io.UnsupportedEncodingException;
 import java.util.Date;
 import java.util.Properties;
+import java.util.logging.Logger;
 
 /**
  * Shared email sending utility (welcome, password reset, etc.).
@@ -19,6 +20,7 @@ import java.util.Properties;
  */
 public final class EmailUtil {
 
+    private static final Logger LOG = LogUtil.getLogger(EmailUtil.class);
     private static final String DEFAULT_USER = "YOUR_GMAIL@gmail.com";
     private static final String DEFAULT_PASS = "YOUR_APP_PASSWORD";
 
@@ -63,8 +65,7 @@ public final class EmailUtil {
             msg.setText(body);
             Transport.send(msg);
         } catch (MessagingException | UnsupportedEncodingException e) {
-            System.err.println("[Galaxy_BBS] Failed to send email to " + toEmail + ": " + e.getMessage());
-            e.printStackTrace();
+            LogUtil.logError(LOG, "Failed to send email to " + toEmail, e);
         }
     }
 }

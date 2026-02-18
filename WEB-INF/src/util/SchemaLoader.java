@@ -5,8 +5,11 @@ import java.io.FileReader;
 import java.sql.Connection;
 import java.sql.Statement;
 import java.sql.SQLException;
+import java.util.logging.Logger;
 
 public class SchemaLoader {
+
+    private static final Logger LOG = LogUtil.getLogger(SchemaLoader.class);
 
     public static void main(String[] args) {
         System.out.println("Initializing Database Schema...");
@@ -76,8 +79,7 @@ public class SchemaLoader {
             System.out.println("Schema initialization complete.");
 
         } catch (Exception e) {
-            e.printStackTrace();
-            System.err.println("Failed to setup database.");
+            LogUtil.logError(LOG, "Failed to setup database", e);
         }
     }
 }

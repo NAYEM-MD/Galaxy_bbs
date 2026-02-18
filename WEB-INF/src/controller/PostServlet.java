@@ -38,6 +38,7 @@ public class PostServlet extends HttpServlet {
 
     private static final int MAX_TITLE_LENGTH = 300;
     private static final int MAX_CONTENT_LENGTH = 50_000;
+    private static final int PAGE_SIZE = 20;
 
     protected void doGet(HttpServletRequest request, HttpServletResponse response) throws ServletException, IOException {
         String path = request.getPathInfo();
@@ -53,14 +54,30 @@ public class PostServlet extends HttpServlet {
         switch (path) {
             case "/feed":
                 String q = request.getParameter("q");
+                int page = 1;
+                String pageParam = request.getParameter("page");
+                if (pageParam != null && !pageParam.isEmpty()) {
+                    try {
+                        page = Math.max(1, Integer.parseInt(pageParam));
+                    } catch (NumberFormatException ignored) { }
+                }
+                int offset = (page - 1) * PAGE_SIZE;
+                int total;
                 List<Post> posts;
                 if (q != null && !q.trim().isEmpty()) {
-                    posts = postDAO.search(q.trim(), currentUserId);
+                    total = postDAO.countSearch(q.trim());
+                    posts = postDAO.search(q.trim(), currentUserId, offset, PAGE_SIZE);
                     request.setAttribute("searchQuery", q.trim());
                 } else {
-                    posts = postDAO.findAll(currentUserId);
+                    total = postDAO.countAll();
+                    posts = postDAO.findAll(currentUserId, offset, PAGE_SIZE);
                 }
+                int totalPages = (total + PAGE_SIZE - 1) / PAGE_SIZE;
+                if (totalPages < 1) totalPages = 1;
                 request.setAttribute("posts", posts);
+                request.setAttribute("currentPage", page);
+                request.setAttribute("totalPages", totalPages);
+                request.setAttribute("totalPosts", total);
                 request.getRequestDispatcher("/WEB-INF/views/posts/feed.jsp").forward(request, response);
                 break;
             case "/create":

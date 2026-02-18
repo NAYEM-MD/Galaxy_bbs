@@ -3,12 +3,15 @@ package util;
 import java.nio.charset.StandardCharsets;
 import java.security.MessageDigest;
 import java.security.NoSuchAlgorithmException;
+import java.util.logging.Logger;
 
 /**
  * Password hashing using bcrypt (with salt).
  * Requires jbcrypt-0.4.jar in WEB-INF/lib (Maven: org.mindrot:jbcrypt:0.4)
  */
 public class PasswordUtil {
+
+    private static final Logger LOG = LogUtil.getLogger(PasswordUtil.class);
 
     /** Bcrypt hashes start with this prefix. */
     private static final String BCRYPT_PREFIX = "$2";
@@ -21,7 +24,7 @@ public class PasswordUtil {
         try {
             return org.mindrot.jbcrypt.BCrypt.hashpw(password, org.mindrot.jbcrypt.BCrypt.gensalt());
         } catch (Exception e) {
-            e.printStackTrace();
+            LogUtil.logError(LOG, "Password hash failed", e);
             return null;
         }
     }
@@ -66,7 +69,7 @@ public class PasswordUtil {
             byte[] encodedhash = digest.digest(password.getBytes(StandardCharsets.UTF_8));
             return bytesToHex(encodedhash);
         } catch (NoSuchAlgorithmException e) {
-            e.printStackTrace();
+            LogUtil.logError(LOG, "SHA-256 not available", e);
             return null;
         }
     }

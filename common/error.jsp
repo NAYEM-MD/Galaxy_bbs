@@ -1,32 +1,23 @@
 <%@ page language="java" contentType="text/html; charset=UTF-8"
 pageEncoding="UTF-8" isErrorPage="true"%>
 <%@ taglib prefix="c" uri="jakarta.tags.core" %>
+<%
+  if (exception != null) {
+    java.util.logging.Logger.getLogger("GalaxyBBS").severe(
+      "Error page: " + exception.getMessage());
+    java.io.StringWriter sw = new java.io.StringWriter();
+    exception.printStackTrace(new java.io.PrintWriter(sw));
+    java.util.logging.Logger.getLogger("GalaxyBBS").severe(sw.toString());
+  }
+%>
 <!DOCTYPE html>
 <html>
   <head>
     <meta charset="UTF-8" />
     <title>Error - Galaxy BBS</title>
-    <style>
-      pre {
-        background: #f5f5f5;
-        padding: 1em;
-        overflow: auto;
-      }
-    </style>
   </head>
   <body>
     <h1>Something went wrong</h1>
-    <c:if test="${not empty pageContext.exception}">
-    <p><strong>Exception:</strong> <c:out value="${pageContext.exception['class'].name}"/></p>
-    <p><strong>Message:</strong> <c:out value="${pageContext.exception.message}"/></p>
-    <c:if test="${not empty pageContext.exception.cause}">
-    <p>
-      <strong>Caused by:</strong> <c:out value="${pageContext.exception.cause['class'].name}"/>: <c:out value="${pageContext.exception.cause.message}"/>
-    </p>
-    </c:if>
-    <pre><%
-        if (exception != null) { exception.printStackTrace(new java.io.PrintWriter(out)); }
-    %></pre>
-    </c:if>
+    <p>We're sorry. The request could not be completed. Please try again or return to the <a href="${pageContext.request.contextPath}/posts/feed">home page</a>.</p>
   </body>
 </html>

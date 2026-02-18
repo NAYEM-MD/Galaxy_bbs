@@ -65,7 +65,7 @@
                 </button>
 
                 <div id="user-dropdown" class="user-dropdown-content">
-                    <a href="${pageContext.request.contextPath}/profile?username=<c:out value="${sessionScope.user.username}"/>" class="dropdown-item">
+                    <a href="<c:url value='/profile'><c:param name='username' value='${sessionScope.user.username}'/></c:url>" class="dropdown-item">
                         <span class="item-icon">
                             <!-- Simple Profile Icon -->
                             <svg viewBox="0 0 20 20" xmlns="http://www.w3.org/2000/svg" class="menu-icon"><path d="M10 9a3 3 0 100-6 3 3 0 000 6zm-7 9a7 7 0 1114 0H3z"/></svg>

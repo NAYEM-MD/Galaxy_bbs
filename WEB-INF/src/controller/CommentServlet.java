@@ -32,8 +32,19 @@ public class CommentServlet extends HttpServlet {
             }
             User user = (User) session.getAttribute("user");
             
+            String postIdStr = request.getParameter("postId");
+            if (postIdStr == null || postIdStr.trim().isEmpty()) {
+                response.sendRedirect(request.getContextPath() + "/posts/feed");
+                return;
+            }
+            int postId;
+            try {
+                postId = Integer.parseInt(postIdStr.trim());
+            } catch (NumberFormatException e) {
+                response.sendRedirect(request.getContextPath() + "/posts/feed");
+                return;
+            }
             String content = request.getParameter("content");
-            int postId = Integer.parseInt(request.getParameter("postId"));
             Integer parentId = null;
             String parentIdStr = request.getParameter("parentId");
             if (parentIdStr != null && !parentIdStr.trim().isEmpty()) {

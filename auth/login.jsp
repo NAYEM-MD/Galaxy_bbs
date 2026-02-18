@@ -26,6 +26,7 @@
         </c:if>
 
         <form action="${pageContext.request.contextPath}/auth/login" method="post">
+            <input type="hidden" name="csrfToken" value="${sessionScope.csrfToken}">
             <div class="form-group">
                 <label>Email</label>
                 <input type="text" name="email" placeholder="Enter your email" required autofocus>

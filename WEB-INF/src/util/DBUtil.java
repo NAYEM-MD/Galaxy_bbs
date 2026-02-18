@@ -9,12 +9,10 @@ import java.sql.SQLException;
 
 /**
  * Database connection utility. Uses Tomcat JDBC pool (JNDI) when available,
- * otherwise falls back to DriverManager.
+ * otherwise uses DriverManager with environment variables (no hardcoded credentials).
+ * Set DB_URL, DB_USER, DB_PASSWORD when not using JNDI.
  */
 public class DBUtil {
-    private static final String DEFAULT_URL = "jdbc:oracle:thin:@localhost:1521:orcl";
-    private static final String DEFAULT_USER = "Galaxy_bbs";
-    private static final String DEFAULT_PASSWORD = "pro";
     private static final String JNDI_NAME = "java:comp/env/jdbc/GalaxyBBS";
 
     static {
@@ -40,10 +38,10 @@ public class DBUtil {
         String url = System.getenv("DB_URL");
         String user = System.getenv("DB_USER");
         String password = System.getenv("DB_PASSWORD");
-        if (url == null || url.isEmpty()) url = DEFAULT_URL;
-        if (user == null || user.isEmpty()) user = DEFAULT_USER;
-        if (password == null) password = DEFAULT_PASSWORD;
-
+        if (url == null || url.isEmpty() || user == null || user.isEmpty() || password == null) {
+            throw new SQLException(
+                "When JNDI is not used, DB_URL, DB_USER and DB_PASSWORD environment variables must be set.");
+        }
         return DriverManager.getConnection(url, user, password);
     }
 }

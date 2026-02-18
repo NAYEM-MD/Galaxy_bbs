@@ -36,6 +36,9 @@ public class PostServlet extends HttpServlet {
     private PostDAO postDAO = new PostDAO();
     private CommentDAO commentDAO = new CommentDAO();
 
+    private static final int MAX_TITLE_LENGTH = 300;
+    private static final int MAX_CONTENT_LENGTH = 50_000;
+
     protected void doGet(HttpServletRequest request, HttpServletResponse response) throws ServletException, IOException {
         String path = request.getPathInfo();
         if (path == null) path = "/feed";
@@ -110,6 +113,23 @@ public class PostServlet extends HttpServlet {
             String title = request.getParameter("title");
             String content = request.getParameter("content"); // This is the rich text body
             String postType = request.getParameter("postType");
+
+            if (title == null || title.trim().isEmpty()) {
+                session.setAttribute("uploadError", "Title is required.");
+                response.sendRedirect(request.getContextPath() + "/posts/create");
+                return;
+            }
+            title = title.trim();
+            if (title.length() > MAX_TITLE_LENGTH) {
+                session.setAttribute("uploadError", "Title must be at most " + MAX_TITLE_LENGTH + " characters.");
+                response.sendRedirect(request.getContextPath() + "/posts/create");
+                return;
+            }
+            if (content != null && content.length() > MAX_CONTENT_LENGTH) {
+                session.setAttribute("uploadError", "Content must be at most " + MAX_CONTENT_LENGTH + " characters.");
+                response.sendRedirect(request.getContextPath() + "/posts/create");
+                return;
+            }
             int tagId = 1; // Default to "General" since selection is removed from UI
             
             String mediaUrl = null;

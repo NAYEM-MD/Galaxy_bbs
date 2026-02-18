@@ -1,13 +1,16 @@
 function vote(postId, value, element) {
     // Check if user is logged in (rudimentary check, backend validates too)
     var ctx = window.appContextPath || '';
+    var csrfToken = document.querySelector('meta[name="csrf-token"]') && document.querySelector('meta[name="csrf-token"]').getAttribute('content');
+    var body = 'postId=' + encodeURIComponent(postId) + '&value=' + encodeURIComponent(value);
+    if (csrfToken) body += '&csrfToken=' + encodeURIComponent(csrfToken);
 
     fetch(ctx + '/vote', {
         method: 'POST',
         headers: {
             'Content-Type': 'application/x-www-form-urlencoded',
         },
-        body: `postId=${postId}&value=${value}`
+        body: body
     })
     .then(response => {
         if (response.status === 401) {

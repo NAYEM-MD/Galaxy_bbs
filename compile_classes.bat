@@ -178,5 +178,5 @@ echo DB test compile failed.
 rd /s /q "%TMP_DIR%" >nul 2>&1
 exit /b 1
 :script_end
-
 endlocal
+exit /b 0

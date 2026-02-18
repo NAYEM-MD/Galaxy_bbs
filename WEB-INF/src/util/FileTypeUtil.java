@@ -24,6 +24,15 @@ public final class FileTypeUtil {
     /** Allowed image extensions that we validate by magic bytes. */
     public static final Set<String> ALLOWED_IMAGE_EXTENSIONS = Set.of(".jpg", ".jpeg", ".png", ".gif", ".webp", ".bmp");
 
+    // Video magic bytes
+    private static final byte[] FTYP = new byte[] { 0x66, 0x74, 0x79, 0x70 }; // MP4, MOV (at offset 4)
+    private static final byte[] WEBM_EBML = new byte[] { 0x1A, 0x45, (byte) 0xDF, (byte) 0xA3 }; // WebM, MKV
+    private static final byte[] RIFF = new byte[] { 0x52, 0x49, 0x46, 0x46 }; // RIFF
+    private static final byte[] AVI_ = new byte[] { 0x41, 0x56, 0x49, 0x20 }; // "AVI " (at offset 8)
+
+    /** Allowed video extensions that we validate by magic bytes. */
+    public static final Set<String> ALLOWED_VIDEO_EXTENSIONS = Set.of(".mp4", ".webm", ".mov", ".avi", ".mkv");
+
     /**
      * Returns the detected image extension (e.g. ".jpg") from magic bytes, or null if not a supported image.
      */
@@ -39,6 +48,38 @@ public final class FileTypeUtil {
         if (matches(header, n, BMP)) return ".bmp";
         if (n >= 12 && matches(header, 4, WEBP_RIFF) && matchesAt(header, 8, WEBP_WEBP)) return ".webp";
 
+        return null;
+    }
+
+    /**
+     * Returns the detected video extension (e.g. ".mp4") from magic bytes, or null if not a supported video.
+     * MP4/MOV use "ftyp" at offset 4; WebM/MKV use EBML header; AVI uses RIFF + "AVI " at offset 8.
+     */
+    public static String detectVideoExtension(InputStream in) throws IOException {
+        if (in == null) return null;
+        byte[] header = new byte[12];
+        int n = in.read(header);
+        if (n < 8) return null;
+        if (n >= 8 && matchesAt(header, 4, FTYP)) return ".mp4";
+        if (n >= 4 && matches(header, n, WEBM_EBML)) return ".webm";
+        if (n >= 12 && matches(header, 4, RIFF) && matchesAt(header, 8, AVI_)) return ".avi";
+        return null;
+    }
+
+    /**
+     * Returns the detected media extension (image or video) from magic bytes, or null if not supported.
+     * Tries image first, then video. Use this for post media uploads.
+     */
+    public static String detectMediaExtension(InputStream in) throws IOException {
+        if (in == null) return null;
+        byte[] header = new byte[12];
+        int n = in.read(header);
+        if (n < 2) return null;
+        String imageExt = detectImageExtension(new java.io.ByteArrayInputStream(header));
+        if (imageExt != null) return imageExt;
+        if (n >= 8 && matchesAt(header, 4, FTYP)) return ".mp4";
+        if (n >= 4 && matches(header, n, WEBM_EBML)) return ".webm";
+        if (n >= 12 && matches(header, 4, RIFF) && matchesAt(header, 8, AVI_)) return ".avi";
         return null;
     }
 

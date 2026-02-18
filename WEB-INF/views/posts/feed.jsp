@@ -5,6 +5,7 @@
 <html>
 <head>
     <meta charset="UTF-8">
+    <meta name="csrf-token" content="${sessionScope.csrfToken}">
     <title>Galaxy^bbs</title>
     <link rel="stylesheet" href="${pageContext.request.contextPath}/assets/css/reset.css">
     <link rel="stylesheet" href="${pageContext.request.contextPath}/assets/css/theme.css">
@@ -42,6 +43,7 @@
                         <button type="button" class="post-menu-trigger" aria-label="Post options" aria-haspopup="true" aria-expanded="false">⋯</button>
                         <div class="post-menu-dropdown" role="menu" aria-hidden="true">
                             <form method="post" action="${pageContext.request.contextPath}/posts/delete" class="post-menu-form">
+                                <input type="hidden" name="csrfToken" value="${sessionScope.csrfToken}">
                                 <input type="hidden" name="id" value="${post.id}">
                                 <button type="submit" class="post-menu-item post-menu-item-delete" role="menuitem">Delete Post</button>
                             </form>

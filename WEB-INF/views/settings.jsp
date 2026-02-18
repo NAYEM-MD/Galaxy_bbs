@@ -29,6 +29,7 @@
         <div class="settings-section">
             <h2 class="settings-section-title">Change Email Address</h2>
             <form method="post" action="${pageContext.request.contextPath}/settings" class="settings-form">
+                <input type="hidden" name="csrfToken" value="${sessionScope.csrfToken}">
                 <input type="hidden" name="action" value="updateEmail">
                 <div class="form-group">
                     <label for="newEmail">New email</label>
@@ -46,6 +47,7 @@
         <div class="settings-section">
             <h2 class="settings-section-title">Change Password</h2>
             <form method="post" action="${pageContext.request.contextPath}/settings" class="settings-form">
+                <input type="hidden" name="csrfToken" value="${sessionScope.csrfToken}">
                 <input type="hidden" name="action" value="changePassword">
                 <div class="form-group">
                     <label for="oldPassword">Current password</label>
@@ -63,6 +65,7 @@
             <h2 class="settings-section-title">Delete Account</h2>
             <p class="settings-warning">This will permanently delete your account and all your posts and comments. This cannot be undone.</p>
             <form method="post" action="${pageContext.request.contextPath}/settings" class="settings-form" onsubmit="return confirm('Are you sure? This cannot be undone.');">
+                <input type="hidden" name="csrfToken" value="${sessionScope.csrfToken}">
                 <input type="hidden" name="action" value="deleteAccount">
                 <div class="form-group">
                     <label for="deletePassword">Enter your password to confirm</label>

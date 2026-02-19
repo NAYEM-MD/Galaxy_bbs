@@ -155,27 +155,34 @@ JavaScript:
 ------------------------------------------------------------
 
 Galaxy_bbs/
-├── index.jsp
-├── auth/
-├── common/
-├── assets/
-│   ├── css/
-│   ├── js/
-│   └── img/
-├── META-INF/context.xml
-├── WEB-INF/
-│   ├── web.xml
-│   ├── classes/
-│   ├── lib/
-│   ├── src/
-│   └── views/
-├── SQL/schema.sql
-├── run.bat
-├── download_deps.bat
-├── compile_classes.bat
-├── set_smtp_env.bat
-├── SETUP.md
-└── README.md
+|-- index.jsp
+|-- auth/
+|-- common/
+|-- assets/
+|   |-- css/
+|   |-- js/
+|   |-- img/
+|-- META-INF/
+|   `-- context.xml
+|-- WEB-INF/
+|   |-- web.xml
+|   |-- classes/
+|   |-- lib/
+|   |-- src/
+|   |   |-- controller/
+|   |   |-- dao/
+|   |   |-- filter/
+|   |   |-- model/
+|   |   `-- util/
+|   `-- views/
+|-- SQL/
+|   `-- schema.sql
+|-- run.bat
+|-- download_deps.bat
+|-- compile_classes.bat
+|-- set_smtp_env.bat
+|-- SETUP.md
+`-- README.md
 
 ------------------------------------------------------------
 7. クイックセットアップ

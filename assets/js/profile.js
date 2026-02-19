@@ -16,6 +16,7 @@
 
     var cropState = {
         img: null,
+        file: null,
         scale: 1,
         panX: 0,
         panY: 0,
@@ -56,6 +57,7 @@
 
     function openCropModal(file) {
         if (!cropModal || !cropCanvas || !file) return;
+        cropState.file = file;
         var reader = new FileReader();
         reader.onload = function (e) {
             var img = new Image();
@@ -115,26 +117,24 @@
 
     function saveCrop() {
         var url = uploadForm && uploadForm.getAttribute('data-upload-url');
-        if (!url) return;
-        getCroppedBlob(function (blob) {
-            if (!blob) return;
-            var fd = new FormData();
-            fd.append('profilePhoto', blob, 'profile.jpg');
-            var csrfInput = uploadForm && uploadForm.querySelector('input[name="csrfToken"]');
-            if (csrfInput && csrfInput.value) fd.append('csrfToken', csrfInput.value);
-            cropSaveBtn.disabled = true;
-            fetch(url, { method: 'POST', body: fd, redirect: 'follow', credentials: 'same-origin' })
-                .then(function (r) {
-                    if (r.redirected) {
-                        window.location.href = r.url;
-                    } else {
-                        cropSaveBtn.disabled = false;
-                    }
-                })
-                .catch(function () {
+        if (!url || !cropState.file) return;
+        var fd = new FormData();
+        var file = cropState.file;
+        fd.append('profilePhoto', file, file.name || 'profile.jpg');
+        var csrfInput = uploadForm && uploadForm.querySelector('input[name="csrfToken"]');
+        if (csrfInput && csrfInput.value) fd.append('csrfToken', csrfInput.value);
+        cropSaveBtn.disabled = true;
+        fetch(url, { method: 'POST', body: fd, redirect: 'follow', credentials: 'same-origin' })
+            .then(function (r) {
+                if (r.redirected) {
+                    window.location.href = r.url;
+                } else {
                     cropSaveBtn.disabled = false;
-                });
-        });
+                }
+            })
+            .catch(function () {
+                cropSaveBtn.disabled = false;
+            });
     }
 
     if (uploadInput) {

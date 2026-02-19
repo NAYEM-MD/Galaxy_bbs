@@ -1,155 +1,157 @@
-Galaxy BBS — Project Overview
+Galaxy BBS — プロジェクト概要
 
-Galaxy BBS is a Reddit-style bulletin board system built with Java Servlets, JSP, and Oracle Database.
-It supports posts, nested comments, votes, polls, media uploads, user profiles, notifications, and light/dark mode.
-
-------------------------------------------------------------
-1. Project Summary
-------------------------------------------------------------
-
-Main Features:
-- User registration and login (bcrypt password hashing)
-- Create posts (text, image, video, or poll)
-- Upvote / downvote posts
-- Nested comments
-- Poll voting with dynamic updates
-- Notifications (comments, mentions)
-- Profile and settings management
-- Light / Dark theme toggle
-
-Architecture:
-- MVC-style structure
-  - Servlets = Controllers
-  - JSP = Views
-  - DAO = Data layer
-  - Oracle DB = Persistence
+Galaxy BBS は、Java Servlets、JSP、Oracle Database を用いて構築された
+Reddit風の掲示板システムです。
+投稿、ネストコメント、投票、アンケート、メディアアップロード、
+ユーザープロフィール、通知機能、ライト／ダークモードをサポートしています。
 
 ------------------------------------------------------------
-2. Request Flow
+1. プロジェクト概要
 ------------------------------------------------------------
 
-High-Level Flow:
+主な機能:
+- ユーザー登録・ログイン（bcrypt によるパスワードハッシュ化）
+- 投稿作成（テキスト／画像／動画／アンケート）
+- 投稿の賛成／反対投票
+- ネスト形式のコメント
+- 動的更新されるアンケート投票
+- 通知機能（コメント、メンション）
+- プロフィール・設定管理
+- ライト／ダークテーマ切り替え
+
+アーキテクチャ:
+- MVCスタイル構成
+  - Servlets = コントローラ
+  - JSP = ビュー
+  - DAO = データアクセス層
+  - Oracle DB = データ永続化
+
+------------------------------------------------------------
+2. リクエスト処理の流れ
+------------------------------------------------------------
+
+全体の流れ:
 User → Tomcat → Filters → Servlet → DAO → Oracle DB
                           ↓
                         JSP
                           ↓
-                      HTML Response
+                      HTMLレスポンス
 
-Authentication:
-- AuthFilter protects /posts/*
-- Login:
+認証処理:
+- AuthFilter が /posts/* を保護
+- ログイン:
   - AuthServlet → UserDAO.checkLogin()
-  - Password verified with jBCrypt
-  - Session stores "user"
-- Register:
-  - Validation → bcrypt hash → DB insert
-  - Welcome email via Jakarta Mail
-- Password reset:
-  - SHA-256 token stored in password_reset_tokens
-  - Reset link sent via email
+  - jBCrypt によるパスワード検証
+  - Session に "user" を保存
+- 新規登録:
+  - バリデーション → bcrypt ハッシュ化 → DB登録
+  - Jakarta Mail によるウェルカムメール送信
+- パスワードリセット:
+  - SHA-256 トークンを password_reset_tokens に保存
+  - リセットリンクをメール送信
 
-Posts & Feed:
-- /posts/feed → PostDAO.findAll() or search()
-- Create post:
-  - multipart/form-data for media
-  - Media saved to disk
-  - Poll and options inserted into DB
-- Post detail:
-  - Load post and comments
-  - buildCommentTree() for nested replies
+投稿とフィード:
+- /posts/feed → PostDAO.findAll() または search()
+- 投稿作成:
+  - multipart/form-data によるメディアアップロード
+  - メディアはディスク保存
+  - アンケートと選択肢をDBに登録
+- 投稿詳細:
+  - 投稿とコメントを読み込み
+  - buildCommentTree() によるネスト構造生成
 
-Voting & Polls (AJAX):
-- Post vote:
+投票とアンケート（AJAX）:
+- 投稿投票:
   - fetch('/vote')
   - VoteServlet → VoteDAO
-  - Returns JSON (success, newCount, userVote)
-- Poll vote:
+  - JSON を返却（success, newCount, userVote）
+- アンケート投票:
   - XHR → /polls/vote
-  - Updates progress bars dynamically
+  - プログレスバーを動的更新
 
-Comments:
+コメント:
 - CommentServlet → CommentDAO.insert()
-- Creates notification for post author
+- 投稿者へ通知を作成
 
-Notifications:
-- NotificationFilter adds unreadCount
-- Header polls /notifications/count every 30 seconds
-- NotificationServlet lists and marks as read
+通知:
+- NotificationFilter が unreadCount を追加
+- ヘッダーが /notifications/count を30秒ごとにポーリング
+- NotificationServlet が一覧表示および既読処理
 
-Profile & Settings:
-- /profile → Profile page
-- Profile image upload (multipart)
-- /settings → Update user settings
+プロフィール・設定:
+- /profile → プロフィール画面
+- プロフィール画像アップロード（multipart）
+- /settings → ユーザー設定更新
 
 ------------------------------------------------------------
-3. Tech Stack
+3. 技術スタック
 ------------------------------------------------------------
 
-Runtime: Java (JDK 11+)
-Server: Apache Tomcat 10
-Database: Oracle Database
-Web Layer: Jakarta Servlets
-View: JSP + JSTL
-Security: jBCrypt (bcrypt)
-Email: Jakarta Mail
+実行環境: Java (JDK 11以上)
+サーバー: Apache Tomcat 10
+データベース: Oracle Database
+Web層: Jakarta Servlets
+ビュー: JSP + JSTL
+セキュリティ: jBCrypt (bcrypt)
+メール: Jakarta Mail
 JDBC: Oracle ojdbc8 / ojdbc11
-Connection Pool: Tomcat JDBC Pool (JNDI)
-Frontend: HTML, CSS, Vanilla JavaScript
-Build: javac + batch scripts
+コネクションプール: Tomcat JDBC Pool (JNDI)
+フロントエンド: HTML, CSS, Vanilla JavaScript
+ビルド: javac + バッチスクリプト
 
 ------------------------------------------------------------
-4. How Technologies Are Used
+4. 各技術の使用箇所
 ------------------------------------------------------------
 
-Backend Structure:
-controller/ → Servlets
-dao/ → Database access (UserDAO, PostDAO, etc.)
-model/ → Entity classes
+バックエンド構成:
+controller/ → サーブレット
+dao/ → データベースアクセス（UserDAO, PostDAO など）
+model/ → エンティティクラス
 filter/ → AuthFilter, NotificationFilter
-util/ → DBUtil, PasswordUtil, EmailUtil, ValidationUtil, etc.
+util/ → DBUtil, PasswordUtil, EmailUtil, ValidationUtil など
 
-Database Tables:
+データベーステーブル:
 - users
 - password_reset_tokens
 - posts
-- comments (nested via parent_id)
+- comments（parent_id によるネスト）
 - votes
 - polls, poll_options, poll_votes
 - notifications
 - tags
 
-Database Connection:
+データベース接続:
 - META-INF/context.xml → JNDI DataSource (jdbc/GalaxyBBS)
-- DBUtil uses JNDI (Tomcat) or DriverManager fallback (env vars)
+- DBUtil は JNDI（Tomcat）または DriverManager（環境変数）を使用
 
-Frontend Assets:
+フロントエンド資産:
 CSS:
 - reset.css, theme.css, main.css, feed.css, post.css, auth.css
 
 JavaScript:
-- theme.js (dark mode toggle)
-- vote.js (AJAX voting)
-- poll.js (poll voting)
+- theme.js（ダークモード切替）
+- vote.js（AJAX投票）
+- poll.js（アンケート投票）
 - auth.js, profile.js
 
-Build Scripts:
-- download_deps.bat (download dependencies)
-- compile_classes.bat (compile Java)
-- run.bat (main menu)
-- set_smtp_env.bat (SMTP environment variables)
+ビルドスクリプト:
+- download_deps.bat（依存関係取得）
+- compile_classes.bat（Javaコンパイル）
+- run.bat（メインメニュー）
+- set_smtp_env.bat（SMTP環境変数設定）
 
 ------------------------------------------------------------
-5. Design Patterns
+5. 設計パターン
 ------------------------------------------------------------
 
-- MVC-style architecture
-- DAO pattern (one DAO per entity)
-- Filter chain (AuthFilter → NotificationFilter)
-- Session-based authentication
-- JNDI connection pooling with fallback
+- MVCスタイルアーキテクチャ
+- DAOパターン（エンティティごとにDAO）
+- フィルターチェーン（AuthFilter → NotificationFilter）
+- セッションベース認証
+- JNDIコネクションプーリング + フォールバック構成
 
 ------------------------------------------------------------
-6. Directory Structure
+6. ディレクトリ構成
 ------------------------------------------------------------
 
 Galaxy_bbs/
@@ -176,31 +178,31 @@ Galaxy_bbs/
 └── README.md
 
 ------------------------------------------------------------
-7. Quick Setup
+7. クイックセットアップ
 ------------------------------------------------------------
 
-1. Clone the repository
-2. Run download_deps.bat
-3. Add ojdbc8.jar or ojdbc11.jar to WEB-INF/lib
-4. Run compile_classes.bat check
-5. Run compile_classes.bat
-6. Execute SQL/schema.sql in Oracle
-7. Configure DB (context.xml or environment variables)
-8. (Optional) Set SMTP environment variables
-9. Deploy to Tomcat
-10. Open http://localhost:8080/Galaxy_bbs/
+1. リポジトリをクローン
+2. download_deps.bat を実行
+3. ojdbc8.jar または ojdbc11.jar を WEB-INF/lib に追加
+4. compile_classes.bat check を実行
+5. compile_classes.bat を実行
+6. SQL/schema.sql を Oracle で実行
+7. DB設定（context.xml または環境変数）
+8. （任意）SMTP環境変数を設定
+9. Tomcat にデプロイ
+10. http://localhost:8080/Galaxy_bbs/ を開く
 
-See SETUP.md for detailed setup and troubleshooting.
+詳細およびトラブルシューティングは SETUP.md を参照。
 
 ------------------------------------------------------------
-Presentation Guide
+プレゼンテーションガイド
 ------------------------------------------------------------
 
-1. Project overview
-2. Architecture diagram
-3. Tech stack
-4. Example request flow (login or create post)
-5. Where technologies are used
-6. Directory structure
-7. Live demo
-8. Setup summary
+1. プロジェクト概要
+2. アーキテクチャ図
+3. 技術スタック
+4. 機能のリクエストフロー例（ログインまたは投稿作成）
+5. 技術の使用箇所
+6. ディレクトリ構成
+7. デモ
+8. セットアップ概要

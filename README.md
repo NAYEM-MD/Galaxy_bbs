@@ -155,34 +155,34 @@ JavaScript:
 ------------------------------------------------------------
 
 Galaxy_bbs/
-|-- index.jsp
-|-- auth/
-|-- common/
-|-- assets/
-|   |-- css/
-|   |-- js/
-|   |-- img/
-|-- META-INF/
-|   `-- context.xml
-|-- WEB-INF/
-|   |-- web.xml
-|   |-- classes/
-|   |-- lib/
-|   |-- src/
-|   |   |-- controller/
-|   |   |-- dao/
-|   |   |-- filter/
-|   |   |-- model/
-|   |   `-- util/
-|   `-- views/
-|-- SQL/
-|   `-- schema.sql
-|-- run.bat
-|-- download_deps.bat
-|-- compile_classes.bat
-|-- set_smtp_env.bat
-|-- SETUP.md
-`-- README.md
+├── index.jsp                 # フィードへリダイレクト
+├── auth/                     # ログイン・新規登録・パスワード再発行/リセット用JSP
+├── common/                   # header.jsp、error.jsp
+├── assets/
+│   ├── css/                  # reset、theme、main、feed、post、auth、profile用CSS
+│   ├── js/                   # theme、auth、vote、poll、profile用JS
+│   └── img/                  # ロゴ、デフォルトアバター画像
+├── META-INF/
+│   └── context.xml           # Tomcat用JNDIデータソース設定
+├── WEB-INF/
+│   ├── web.xml               # サーブレット・フィルター・マッピング・エラーページ設定
+│   ├── classes/              # コンパイル済み.classファイル（srcから生成）
+│   ├── lib/                  # ojdbc、jbcrypt、jakarta.mail などのJAR
+│   ├── src/
+│   │   ├── controller/       # AuthServlet、PostServlet、CommentServletなど
+│   │   ├── dao/              # UserDAO、PostDAO、CommentDAOなど
+│   │   ├── filter/           # AuthFilter、NotificationFilter
+│   │   ├── model/            # User、Post、Comment、Pollなどのモデルクラス
+│   │   └── util/             # DBUtil、PasswordUtil、EmailUtilなど
+│   └── views/                # feed.jsp、create.jsp、detail.jsp、profile.jspなど
+├── SQL/
+│   └── schema.sql            # Oracle用スキーマ定義
+├── run.bat                   # メインメニュー起動スクリプト
+├── download_deps.bat         # 依存JAR取得スクリプト
+├── compile_classes.bat       # Javaコンパイル用スクリプト
+├── set_smtp_env.bat          # SMTP環境変数設定スクリプト
+├── SETUP.md                  # セットアップ手順書
+└── README.md                 # このファイル
 
 ------------------------------------------------------------
 7. クイックセットアップ

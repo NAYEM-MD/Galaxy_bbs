@@ -133,11 +133,14 @@ public class AuthServlet extends HttpServlet {
             User user = new User(username, password, email);
             getUserDAO().save(user);
 
-            // Only new account creators get welcome email — sent to the address they registered with (Gmail or any)
+            String baseUrl = request.getRequestURL().toString().replace(request.getRequestURI(), request.getContextPath());
+            String loginLink = baseUrl + "/auth/login";
+
             EmailUtil.sendEmail(email, "Welcome to Galaxy_BBS",
                 "Hello,\n\n"
-                + "Thank you for creating an account on Galaxy_BBS.\n\n"
-                + "Your registration was successful, and you can now log in using your registered email address.\n\n"
+                + "Welcome to Galaxy_BBS!\n\n"
+                + "Your registration was successful. You can log in using the link below (or copy and paste it into your browser):\n"
+                + loginLink + "\n\n"
                 + "We hope you enjoy sharing and discussing ideas with the Galaxy_BBS community.\n\n"
                 + "Best regards,\n"
                 + "Galaxy_BBS Team");

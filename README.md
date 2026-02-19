@@ -1,215 +1,86 @@
-Galaxy BBS — プロジェクト概要
+# Galaxy BBS
 
-Galaxy BBS は、Java Servlets、JSP、Oracle Database を用いて構築された
-Reddit風の掲示板システムです。
-投稿、ネストコメント、投票、アンケート、メディアアップロード、
-ユーザープロフィール、通知機能、ライト／ダークモードをサポートしています。
+Java Servlets・JSP・Oracle Database で構築した **Reddit 風掲示板**です。投稿、投票、コメント、アンケート、プロフィール管理ができ、ライト/ダークテーマ対応のウェブインターフェースで利用できます。
 
-------------------------------------------------------------
-1. プロジェクト概要
-------------------------------------------------------------
+---
 
-主な機能:
-- ユーザー登録・ログイン（bcrypt によるパスワードハッシュ化）
-- 投稿作成（テキスト／画像／動画／アンケート）
-- 投稿の賛成／反対投票
-- ネスト形式のコメント
-- 動的更新されるアンケート投票
-- 通知機能（コメント、メンション）
-- プロフィール・設定管理
-- ライト／ダークテーマ切り替え
+## 主な機能
 
-アーキテクチャ:
-- MVCスタイル構成
-  - Servlets = コントローラ
-  - JSP = ビュー
-  - DAO = データアクセス層
-  - Oracle DB = データ永続化
+- **ユーザーアカウント** — 登録、ログイン、パスワード忘れ・リセット（メール認証）
+- **投稿** — テキスト投稿、画像・動画の添付、アンケートの作成
+- **投票** — 投稿のアップ/ダウンボート、アンケートの選択肢への投票
+- **コメント** — 投稿へのネストされた返信
+- **通知** — コメントやメンションの通知
+- **プロフィール・設定** — プロフィール写真、表示名、ライト/ダークテーマ
 
-------------------------------------------------------------
-2. リクエスト処理の流れ
-------------------------------------------------------------
+---
 
-全体の流れ:
-User → Tomcat → Filters → Servlet → DAO → Oracle DB
-                          ↓
-                        JSP
-                          ↓
-                      HTMLレスポンス
+## 技術スタック
 
-認証処理:
-- AuthFilter が /posts/* を保護
-- ログイン:
-  - AuthServlet → UserDAO.checkLogin()
-  - jBCrypt によるパスワード検証
-  - Session に "user" を保存
-- 新規登録:
-  - バリデーション → bcrypt ハッシュ化 → DB登録
-  - Jakarta Mail によるウェルカムメール送信
-- パスワードリセット:
-  - SHA-256 トークンを password_reset_tokens に保存
-  - リセットリンクをメール送信
+| 層         | 技術                         |
+|------------|------------------------------|
+| バックエンド | Java 11+, Jakarta Servlets   |
+| ビュー     | JSP, JSTL                    |
+| データベース | Oracle Database             |
+| サーバー   | Apache Tomcat 10.x           |
+| セキュリティ | jBCrypt（パスワード）        |
+| メール     | Jakarta Mail（ウェルカム・リセット用） |
+| フロントエンド | HTML, CSS, JavaScript    |
 
-投稿とフィード:
-- /posts/feed → PostDAO.findAll() または search()
-- 投稿作成:
-  - multipart/form-data によるメディアアップロード
-  - メディアはディスク保存
-  - アンケートと選択肢をDBに登録
-- 投稿詳細:
-  - 投稿とコメントを読み込み
-  - buildCommentTree() によるネスト構造生成
+---
 
-投票とアンケート（AJAX）:
-- 投稿投票:
-  - fetch('/vote')
-  - VoteServlet → VoteDAO
-  - JSON を返却（success, newCount, userVote）
-- アンケート投票:
-  - XHR → /polls/vote
-  - プログレスバーを動的更新
+## はじめに
 
-コメント:
-- CommentServlet → CommentDAO.insert()
-- 投稿者へ通知を作成
+### 必要環境
 
-通知:
-- NotificationFilter が unreadCount を追加
-- ヘッダーが /notifications/count を30秒ごとにポーリング
-- NotificationServlet が一覧表示および既読処理
+- **JDK 11 以上**
+- **Apache Tomcat 10.x**
+- **Oracle Database**（`SQL/schema.sql` でスキーマ作成）
+- **Oracle JDBC ドライバ**（`ojdbc8.jar` または `ojdbc11.jar` を `WEB-INF/lib` に配置）
 
-プロフィール・設定:
-- /profile → プロフィール画面
-- プロフィール画像アップロード（multipart）
-- /settings → ユーザー設定更新
+### クイックセットアップ
 
-------------------------------------------------------------
-3. 技術スタック
-------------------------------------------------------------
+1. **クローン** — リポジトリをクローンし、プロジェクトフォルダを開く。
+2. **依存関係** — `download_deps.bat` を実行し、jBCrypt と Jakarta Mail を `WEB-INF/lib` に取得。
+3. **Oracle ドライバ** — `ojdbc8.jar` または `ojdbc11.jar` を `WEB-INF/lib` に追加（リポジトリには含まれません）。
+4. **データベース** — Oracle で `SQL/schema.sql` を実行。
+5. **設定** — `META-INF/context.xml`（JNDI）または環境変数 `DB_URL`・`DB_USER`・`DB_PASSWORD` を設定。
+6. **ビルド** — `compile_classes.bat` を実行して Java ソースをコンパイル。
+7. **デプロイ** — アプリを Tomcat の `webapps` にコピーし、Tomcat を起動。
+8. **アクセス** — `http://localhost:8080/Galaxy_bbs/` を開く（コンテキストパスは環境に合わせて変更してください）。
 
-実行環境: Java (JDK 11以上)
-サーバー: Apache Tomcat 10
-データベース: Oracle Database
-Web層: Jakarta Servlets
-ビュー: JSP + JSTL
-セキュリティ: jBCrypt (bcrypt)
-メール: Jakarta Mail
-JDBC: Oracle ojdbc8 / ojdbc11
-コネクションプール: Tomcat JDBC Pool (JNDI)
-フロントエンド: HTML, CSS, Vanilla JavaScript
-ビルド: javac + バッチスクリプト
+オプション：ウェルカムメール・パスワードリセット用に `set_smtp_env.bat` を実行し、SMTP を設定してください。
 
-------------------------------------------------------------
-4. 各技術の使用箇所
-------------------------------------------------------------
+詳細な手順とトラブルシューティングは **[SETUP.md](SETUP.md)** を参照してください。
 
-バックエンド構成:
-controller/ → サーブレット
-dao/ → データベースアクセス（UserDAO, PostDAO など）
-model/ → エンティティクラス
-filter/ → AuthFilter, NotificationFilter
-util/ → DBUtil, PasswordUtil, EmailUtil, ValidationUtil など
+---
 
-データベーステーブル:
-- users
-- password_reset_tokens
-- posts
-- comments（parent_id によるネスト）
-- votes
-- polls, poll_options, poll_votes
-- notifications
-- tags
+## プロジェクト構成
 
-データベース接続:
-- META-INF/context.xml → JNDI DataSource (jdbc/GalaxyBBS)
-- DBUtil は JNDI（Tomcat）または DriverManager（環境変数）を使用
-
-フロントエンド資産:
-CSS:
-- reset.css, theme.css, main.css, feed.css, post.css, auth.css
-
-JavaScript:
-- theme.js（ダークモード切替）
-- vote.js（AJAX投票）
-- poll.js（アンケート投票）
-- auth.js, profile.js
-
-ビルドスクリプト:
-- download_deps.bat（依存関係取得）
-- compile_classes.bat（Javaコンパイル）
-- run.bat（メインメニュー）
-- set_smtp_env.bat（SMTP環境変数設定）
-
-------------------------------------------------------------
-5. 設計パターン
-------------------------------------------------------------
-
-- MVCスタイルアーキテクチャ
-- DAOパターン（エンティティごとにDAO）
-- フィルターチェーン（AuthFilter → NotificationFilter）
-- セッションベース認証
-- JNDIコネクションプーリング + フォールバック構成
-
-------------------------------------------------------------
-6. ディレクトリ構成
-------------------------------------------------------------
-
-Galaxy_bbs/
-├── index.jsp                 # フィードへリダイレクト
-├── auth/                     # ログイン・新規登録・パスワード再発行/リセット用JSP
-├── common/                   # header.jsp、error.jsp
-├── assets/
-│   ├── css/                  # reset、theme、main、feed、post、auth、profile用CSS
-│   ├── js/                   # theme、auth、vote、poll、profile用JS
-│   └── img/                  # ロゴ、デフォルトアバター画像
-├── META-INF/
-│   └── context.xml           # Tomcat用JNDIデータソース設定
+```
+├── auth/              # ログイン・登録・パスワード忘れ・リセットページ
+├── common/            # 共通ヘッダー、エラーページ
+├── assets/            # CSS, JS, 画像
+├── META-INF/          # Tomcat コンテキスト（JNDI DataSource）
 ├── WEB-INF/
-│   ├── web.xml               # サーブレット・フィルター・マッピング・エラーページ設定
-│   ├── classes/              # コンパイル済み.classファイル（srcから生成）
-│   ├── lib/                  # ojdbc、jbcrypt、jakarta.mail などのJAR
+│   ├── web.xml       # Servlets, フィルタ, マッピング
 │   ├── src/
-│   │   ├── controller/       # AuthServlet、PostServlet、CommentServletなど
-│   │   ├── dao/              # UserDAO、PostDAO、CommentDAOなど
-│   │   ├── filter/           # AuthFilter、NotificationFilter
-│   │   ├── model/            # User、Post、Comment、Pollなどのモデルクラス
-│   │   └── util/             # DBUtil、PasswordUtil、EmailUtilなど
-│   └── views/                # feed.jsp、create.jsp、detail.jsp、profile.jspなど
+│   │   ├── controller/  # サーブレット
+│   │   ├── dao/         # データアクセス
+│   │   ├── filter/      # 認証・通知
+│   │   ├── model/       # ドメインモデル
+│   │   └── util/        # DB・パスワード・メールユーティリティ
+│   └── views/        # JSP（フィード、投稿詳細、プロフィール等）
 ├── SQL/
-│   └── schema.sql            # Oracle用スキーマ定義
-├── run.bat                   # メインメニュー起動スクリプト
-├── download_deps.bat         # 依存JAR取得スクリプト
-├── compile_classes.bat       # Javaコンパイル用スクリプト
-├── set_smtp_env.bat          # SMTP環境変数設定スクリプト
-├── SETUP.md                  # セットアップ手順書
-└── README.md                 # このファイル
+│   └── schema.sql    # Oracle スキーマ
+├── run.bat           # メニュー：依存取得、コンパイル、SMTP、起動
+├── download_deps.bat
+├── compile_classes.bat
+└── set_smtp_env.bat
+```
 
-------------------------------------------------------------
-7. クイックセットアップ
-------------------------------------------------------------
+---
 
-1. リポジトリをクローン
-2. download_deps.bat を実行
-3. ojdbc8.jar または ojdbc11.jar を WEB-INF/lib に追加
-4. compile_classes.bat check を実行
-5. compile_classes.bat を実行
-6. SQL/schema.sql を Oracle で実行
-7. DB設定（context.xml または環境変数）
-8. （任意）SMTP環境変数を設定
-9. Tomcat にデプロイ
-10. http://localhost:8080/Galaxy_bbs/ を開く
+## ライセンス
 
-詳細およびトラブルシューティングは SETUP.md を参照。
-
-------------------------------------------------------------
-プレゼンテーションガイド
-------------------------------------------------------------
-
-1. プロジェクト概要
-2. アーキテクチャ図
-3. 技術スタック
-4. 機能のリクエストフロー例（ログインまたは投稿作成）
-5. 技術の使用箇所
-6. ディレクトリ構成
-7. デモ
-8. セットアップ概要
+本プロジェクトは教育・デモ目的です。自由に利用・改変してください。

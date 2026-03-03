@@ -186,11 +186,591 @@ CREATE TABLE notifications (
     FOREIGN KEY (comment_id) REFERENCES comments(id) ON DELETE CASCADE
 );
 
-INSERT INTO tags (name) VALUES ('General');
-INSERT INTO tags (name) VALUES ('Technology');
-INSERT INTO tags (name) VALUES ('Gaming');
-INSERT INTO tags (name) VALUES ('Music');
-INSERT INTO tags (name) VALUES ('News');
+-- ---------------------------------------------------------------------------
+-- Initial Test Data (insert only when DB is empty)
+-- ---------------------------------------------------------------------------
+DECLARE
+    v_count NUMBER := 0;
+    v_post_count NUMBER := 0;
+
+    v_user1_id users.id%TYPE;
+    v_user2_id users.id%TYPE;
+    v_user3_id users.id%TYPE;
+
+    v_tag_general_id tags.id%TYPE;
+    v_tag_tech_id tags.id%TYPE;
+    v_tag_gaming_id tags.id%TYPE;
+    v_tag_music_id tags.id%TYPE;
+    v_tag_news_id tags.id%TYPE;
+
+    v_post1_id posts.id%TYPE;
+    v_post2_id posts.id%TYPE;
+    v_post3_id posts.id%TYPE;
+    v_post4_id posts.id%TYPE;
+    v_post5_id posts.id%TYPE;
+
+    v_comment1_id NUMBER(10);
+    v_reply1_id   NUMBER(10);
+    v_comment2_id NUMBER(10);
+    v_comment3_id NUMBER(10);
+    v_comment4_id NUMBER(10);
+    v_cid         NUMBER(10);
+
+    TYPE t_post_ids IS TABLE OF posts.id%TYPE INDEX BY PLS_INTEGER;
+    v_post_ids t_post_ids;
+
+    v_poll_id polls.id%TYPE;
+    v_poll_opt1_id poll_options.id%TYPE;
+    v_poll_opt2_id poll_options.id%TYPE;
+BEGIN
+    SELECT COUNT(*) INTO v_count FROM users;
+    SELECT COUNT(*) INTO v_post_count FROM posts;
+
+    IF v_count = 0 THEN
+        INSERT INTO users (username, email, password, profile_image)
+        VALUES ('andromeda', 'andromeda@example.com', '$2b$10$2JQv5P1q3i7p8l0fKc9i6OqJ3m0v2kYz8h7xQxwY0u7u0bT2z9k3G', NULL)
+        RETURNING users.id INTO v_user1_id;
+
+        INSERT INTO users (username, email, password, profile_image)
+        VALUES ('nova', 'nova@example.com', '$2b$10$wD1l8zq4qk4b0nWlq3m1lOa0p6gQk2pQpVf1K2z5i9S0q3m2m2e1S', NULL)
+        RETURNING users.id INTO v_user2_id;
+
+        INSERT INTO users (username, email, password, profile_image)
+        VALUES ('kepler', 'kepler@example.com', '$2b$10$e0mT3vQ1aP8qK7k3pQ2m3s9lV0q8n6bH4c2a1m9s7pQ1l0v2n8x4u', NULL)
+        RETURNING users.id INTO v_user3_id;
+
+        MERGE INTO tags t
+        USING (SELECT 'General' AS name FROM dual) s
+        ON (t.name = s.name)
+        WHEN NOT MATCHED THEN
+            INSERT (name) VALUES (s.name);
+
+        MERGE INTO tags t
+        USING (SELECT 'Technology' AS name FROM dual) s
+        ON (t.name = s.name)
+        WHEN NOT MATCHED THEN
+            INSERT (name) VALUES (s.name);
+
+        MERGE INTO tags t
+        USING (SELECT 'Gaming' AS name FROM dual) s
+        ON (t.name = s.name)
+        WHEN NOT MATCHED THEN
+            INSERT (name) VALUES (s.name);
+
+        MERGE INTO tags t
+        USING (SELECT 'Music' AS name FROM dual) s
+        ON (t.name = s.name)
+        WHEN NOT MATCHED THEN
+            INSERT (name) VALUES (s.name);
+
+        MERGE INTO tags t
+        USING (SELECT 'News' AS name FROM dual) s
+        ON (t.name = s.name)
+        WHEN NOT MATCHED THEN
+            INSERT (name) VALUES (s.name);
+
+        SELECT id INTO v_tag_general_id FROM tags WHERE name = 'General';
+        SELECT id INTO v_tag_tech_id FROM tags WHERE name = 'Technology';
+        SELECT id INTO v_tag_gaming_id FROM tags WHERE name = 'Gaming';
+        SELECT id INTO v_tag_music_id FROM tags WHERE name = 'Music';
+        SELECT id INTO v_tag_news_id FROM tags WHERE name = 'News';
+
+        INSERT INTO posts (user_id, title, content, tag_id, media_url, media_type, created_at)
+        VALUES (
+            v_user1_id,
+            'Welcome to Galaxy BBS',
+            TO_CLOB('This is a fresh install with sample content. Start a discussion, add a poll, and try voting and commenting.'),
+            v_tag_general_id,
+            NULL,
+            NULL,
+            CAST(SYSTIMESTAMP - INTERVAL '3' DAY AS TIMESTAMP)
+        )
+        RETURNING posts.id INTO v_post1_id;
+
+        INSERT INTO posts (user_id, title, content, tag_id, media_url, media_type, created_at)
+        VALUES (
+            v_user2_id,
+            'What should we build next?',
+            TO_CLOB('Ideas: better search, richer profiles, tag subscriptions, or real-time notifications. Vote in the poll below.'),
+            v_tag_tech_id,
+            NULL,
+            NULL,
+            CAST(SYSTIMESTAMP - INTERVAL '2' DAY - NUMTODSINTERVAL(6, 'HOUR') AS TIMESTAMP)
+        )
+        RETURNING posts.id INTO v_post2_id;
+
+        INSERT INTO posts (user_id, title, content, tag_id, media_url, media_type, created_at)
+        VALUES (
+            v_user3_id,
+            UNISTR('\306F\3058\3081\307E\3057\3066\FF01Galaxy BBS\3078\3088\3046\3053\305D'),
+            TO_CLOB(UNISTR('\30C6\30B9\30C8\6295\7A3F\3067\3059\3002\6C17\8EFD\306B\30B3\30E1\30F3\30C8\3057\3066\307F\3066\304F\3060\3055\3044\3002\96D1\8AC7\3067\3082OK\3067\3059\3002')),
+            v_tag_general_id,
+            NULL,
+            NULL,
+            CAST(SYSTIMESTAMP - INTERVAL '2' DAY AS TIMESTAMP)
+        )
+        RETURNING posts.id INTO v_post3_id;
+
+        INSERT INTO posts (user_id, title, content, tag_id, media_url, media_type, created_at)
+        VALUES (
+            v_user1_id,
+            UNISTR('\6700\8FD1\30CF\30DE\3063\3066\3044\308B\30B2\30FC\30E0\306F\FF1F'),
+            TO_CLOB(UNISTR('\4ECA\6708\30D7\30EC\30A4\3057\3066\9762\767D\304B\3063\305F\30B2\30FC\30E0\3092\6559\3048\3066\304F\3060\3055\3044\3002\304A\3059\3059\3081\30DD\30A4\30F3\30C8\3082\305C\3072\FF01')),
+            v_tag_gaming_id,
+            NULL,
+            NULL,
+            CAST(SYSTIMESTAMP - INTERVAL '1' DAY AS TIMESTAMP)
+        )
+        RETURNING posts.id INTO v_post4_id;
+
+        INSERT INTO posts (user_id, title, content, tag_id, media_url, media_type, created_at)
+        VALUES (
+            v_user2_id,
+            UNISTR('\4F5C\696D\7528BGM\306E\304A\3059\3059\3081'),
+            TO_CLOB(UNISTR('\96C6\4E2D\3057\305F\3044\3068\304D\306B\8074\304F\97F3\697D\306F\3042\308A\307E\3059\304B\FF1F\30D7\30EC\30A4\30EA\30B9\30C8\3084\30A2\30FC\30C6\30A3\30B9\30C8\540D\3082\6B53\8FCE\3067\3059\3002')),
+            v_tag_music_id,
+            NULL,
+            NULL,
+            CAST(SYSTIMESTAMP - NUMTODSINTERVAL(12, 'HOUR') AS TIMESTAMP)
+        )
+        RETURNING posts.id INTO v_post5_id;
+
+        -- Extra realistic posts (for pagination, search, tag filtering)
+        FOR i IN 1..30 LOOP
+            DECLARE
+                v_author_id users.id%TYPE;
+                v_tag_id tags.id%TYPE;
+                v_title VARCHAR2(255);
+                v_body  CLOB;
+                v_new_post_id posts.id%TYPE;
+                v_i_str VARCHAR2(10);
+            BEGIN
+                v_i_str := TO_CHAR(i);
+                v_author_id :=
+                    CASE MOD(i, 3)
+                        WHEN 0 THEN v_user1_id
+                        WHEN 1 THEN v_user2_id
+                        ELSE v_user3_id
+                    END;
+
+                v_tag_id :=
+                    CASE MOD(i, 5)
+                        WHEN 0 THEN v_tag_general_id
+                        WHEN 1 THEN v_tag_tech_id
+                        WHEN 2 THEN v_tag_gaming_id
+                        WHEN 3 THEN v_tag_music_id
+                        ELSE v_tag_news_id
+                    END;
+
+                v_title :=
+                    CASE v_tag_id
+                        WHEN v_tag_general_id THEN
+                            CASE MOD(i, 6)
+                                WHEN 0 THEN 'Introduce yourself: where are you from?'
+                                WHEN 1 THEN 'Daily check-in: what are you working on today?'
+                                WHEN 2 THEN 'Small wins thread'
+                                WHEN 3 THEN 'What is one feature you want in this BBS?'
+                                WHEN 4 THEN 'Random question: coffee or tea?'
+                                ELSE UNISTR('\4ECA\65E5\306E\3072\3068\3053\3068\FF1A\8FD1\6CC1\304D\304B\305B\3066')
+                            END
+                        WHEN v_tag_tech_id THEN
+                            CASE MOD(i, 6)
+                                WHEN 0 THEN 'Oracle tip: indexing and query plans'
+                                WHEN 1 THEN 'Debugging JDBC: common gotchas'
+                                WHEN 2 THEN 'Frontend idea: better post editor UX'
+                                WHEN 3 THEN 'How do you organize tags at scale?'
+                                WHEN 4 THEN UNISTR('\30D1\30D5\30A9\30FC\30DE\30F3\30B9\8ABF\6574\306E\30B3\30C4')
+                                ELSE 'What should we name the next release?'
+                            END
+                        WHEN v_tag_gaming_id THEN
+                            CASE MOD(i, 6)
+                                WHEN 0 THEN 'Co-op recommendations for this weekend'
+                                WHEN 1 THEN 'What is your comfort game?'
+                                WHEN 2 THEN 'Best soundtrack in a game?'
+                                WHEN 3 THEN UNISTR('\30B2\30FC\30E0\306E\601D\3044\51FA\3092\6559\3048\3066')
+                                WHEN 4 THEN 'Controller vs keyboard: what do you prefer?'
+                                ELSE 'Share your latest in-game achievement'
+                            END
+                        WHEN v_tag_music_id THEN
+                            CASE MOD(i, 6)
+                                WHEN 0 THEN 'Album of the week: what are you listening to?'
+                                WHEN 1 THEN 'Songs that help you focus'
+                                WHEN 2 THEN 'Guilty-pleasure tracks'
+                                WHEN 3 THEN UNISTR('\304A\3059\3059\3081\306E\4F5C\696D\7528\30D7\30EC\30A4\30EA\30B9\30C8')
+                                WHEN 4 THEN 'Live shows: any upcoming concerts?'
+                                ELSE 'Share one song and why it matters to you'
+                            END
+                        ELSE
+                            CASE MOD(i, 6)
+                                WHEN 0 THEN 'Weekly roundup: what did you learn this week?'
+                                WHEN 1 THEN 'Community update: new features shipping soon'
+                                WHEN 2 THEN 'Interesting link dump: tech/gaming/music'
+                                WHEN 3 THEN UNISTR('\4ECA\9031\306E\30CB\30E5\30FC\30B9\307E\3068\3081')
+                                WHEN 4 THEN 'Site status: performance and reliability notes'
+                                ELSE 'What news story are you following right now?'
+                            END
+                    END;
+
+                v_body :=
+                    CASE v_tag_id
+                        WHEN v_tag_general_id THEN
+                            TO_CLOB('Quick post to start a conversation. ') ||
+                            TO_CLOB('Reply with one sentence, or share as much detail as you want. ') ||
+                            TO_CLOB('If you are new here, welcome! (#') || TO_CLOB(v_i_str) || TO_CLOB(')')
+                        WHEN v_tag_tech_id THEN
+                            TO_CLOB('Notes from today''s tinkering: ') ||
+                            TO_CLOB('1) Keep schema changes idempotent. ') ||
+                            TO_CLOB('2) Watch out for encoding when loading SQL on Windows. ') ||
+                            TO_CLOB('3) Add small realistic seed data to test paging. ') ||
+                            TO_CLOB('Post #') || TO_CLOB(v_i_str) || TO_CLOB('. What would you improve next?')
+                        WHEN v_tag_gaming_id THEN
+                            TO_CLOB('Looking for recommendations and hot takes. ') ||
+                            TO_CLOB('What are you playing lately, and what makes it fun for you? ') ||
+                            TO_CLOB('Post #') || TO_CLOB(v_i_str) || TO_CLOB('.')
+                        WHEN v_tag_music_id THEN
+                            TO_CLOB('Drop a track/artist/playlist and tell us the vibe: lo-fi, jazz, metal, city pop, etc. ') ||
+                            TO_CLOB('Bonus: what are you doing while listening? ') ||
+                            TO_CLOB('Post #') || TO_CLOB(v_i_str) || TO_CLOB('.')
+                        ELSE
+                            TO_CLOB('Sharing a small update for the community feed. ') ||
+                            TO_CLOB('If you have links or context, add them in a reply. ') ||
+                            TO_CLOB('Post #') || TO_CLOB(v_i_str) || TO_CLOB('.')
+                    END;
+
+                INSERT INTO posts (user_id, title, content, tag_id, media_url, media_type, created_at)
+                VALUES (
+                    v_author_id,
+                    v_title,
+                    v_body,
+                    v_tag_id,
+                    NULL,
+                    NULL,
+                    CAST(SYSTIMESTAMP AS TIMESTAMP) - NUMTODSINTERVAL(i * 7, 'MINUTE')
+                )
+                RETURNING posts.id INTO v_new_post_id;
+                v_post_ids(i) := v_new_post_id;
+            END;
+        END LOOP;
+
+        -- Post 1: 6 comments (2 reply threads + 2 extra)
+        INSERT INTO comments (post_id, parent_id, user_id, content)
+        VALUES (v_post1_id, NULL, v_user2_id, TO_CLOB('Nice! I tested posting and it works. Next I want to see tag subscriptions.'));
+        SELECT id INTO v_comment1_id FROM (SELECT id FROM comments ORDER BY id DESC FETCH FIRST 1 ROWS ONLY) q;
+        INSERT INTO comments (post_id, parent_id, user_id, content)
+        VALUES (v_post1_id, v_comment1_id, v_user1_id, TO_CLOB('Agreed - tag subscriptions would be a great next step.'));
+        INSERT INTO comments (post_id, parent_id, user_id, content)
+        VALUES (v_post1_id, NULL, v_user3_id, TO_CLOB('Same here, search by tag would be really useful.'));
+        SELECT id INTO v_comment2_id FROM (SELECT id FROM comments ORDER BY id DESC FETCH FIRST 1 ROWS ONLY) q;
+        INSERT INTO comments (post_id, parent_id, user_id, content)
+        VALUES (v_post1_id, v_comment2_id, v_user2_id, TO_CLOB('We could add that in the next sprint.'));
+        INSERT INTO comments (post_id, parent_id, user_id, content)
+        VALUES (v_post1_id, NULL, v_user1_id, TO_CLOB('Thanks for setting this up. Really helpful.'));
+        INSERT INTO comments (post_id, parent_id, user_id, content)
+        VALUES (v_post1_id, NULL, v_user2_id, TO_CLOB('Anyone tried the search yet?'));
+
+        -- Post 2: 6 comments (1 reply thread + 4 extra)
+        INSERT INTO comments (post_id, parent_id, user_id, content)
+        VALUES (v_post2_id, NULL, v_user1_id, TO_CLOB('I voted for better search. Anyone else tried the poll?'));
+        SELECT id INTO v_comment3_id FROM (SELECT id FROM comments ORDER BY id DESC FETCH FIRST 1 ROWS ONLY) q;
+        INSERT INTO comments (post_id, parent_id, user_id, content)
+        VALUES (v_post2_id, v_comment3_id, v_user3_id, TO_CLOB('I went with tag subscriptions. Both would be nice though.'));
+        INSERT INTO comments (post_id, parent_id, user_id, content)
+        VALUES (v_post2_id, NULL, v_user2_id, TO_CLOB('Thanks for the feedback, will pass it to the team.'));
+        INSERT INTO comments (post_id, parent_id, user_id, content)
+        VALUES (v_post2_id, NULL, v_user1_id, TO_CLOB('Real-time notifications would be a game changer.'));
+        INSERT INTO comments (post_id, parent_id, user_id, content)
+        VALUES (v_post2_id, NULL, v_user3_id, TO_CLOB('Poll is a nice touch.'));
+        INSERT INTO comments (post_id, parent_id, user_id, content)
+        VALUES (v_post2_id, NULL, v_user2_id, TO_CLOB('Richer profiles next please.'));
+
+        -- Post 3: 9 comments, with replies
+        INSERT INTO comments (post_id, parent_id, user_id, content)
+        VALUES (v_post3_id, NULL, v_user3_id, TO_CLOB(UNISTR('\3053\3053\3089\3078\3088\3046\3053\305D\FF01\30C6\30B9\30C8\6295\7A3F\3044\3044\306D\3002')));
+        SELECT id INTO v_cid FROM (SELECT id FROM comments ORDER BY id DESC FETCH FIRST 1 ROWS ONLY) q;
+        INSERT INTO comments (post_id, parent_id, user_id, content)
+        VALUES (v_post3_id, v_cid, v_user1_id, TO_CLOB('Welcome! Feel free to post anything.'));
+        INSERT INTO comments (post_id, parent_id, user_id, content)
+        VALUES (v_post3_id, NULL, v_user2_id, TO_CLOB('Good to have you here.'));
+        INSERT INTO comments (post_id, parent_id, user_id, content)
+        VALUES (v_post3_id, NULL, v_user3_id, TO_CLOB(UNISTR('\307E\305A\306F\96D1\8AC7\304B\3089\3069\3046\305E\3002')));
+        INSERT INTO comments (post_id, parent_id, user_id, content)
+        VALUES (v_post3_id, NULL, v_user1_id, TO_CLOB('Nice to meet you.'));
+        INSERT INTO comments (post_id, parent_id, user_id, content)
+        VALUES (v_post3_id, NULL, v_user2_id, TO_CLOB('Testing the comment box - works.'));
+        INSERT INTO comments (post_id, parent_id, user_id, content)
+        VALUES (v_post3_id, NULL, v_user3_id, TO_CLOB('Same, just saying hi.'));
+        INSERT INTO comments (post_id, parent_id, user_id, content)
+        VALUES (v_post3_id, NULL, v_user1_id, TO_CLOB('Drop a link or a thought anytime.'));
+        INSERT INTO comments (post_id, parent_id, user_id, content)
+        VALUES (v_post3_id, NULL, v_user2_id, TO_CLOB('Cheers.'));
+
+        -- Post 4: 4 comments (1 reply thread + 2 extra)
+        INSERT INTO comments (post_id, parent_id, user_id, content)
+        VALUES (v_post4_id, NULL, v_user1_id, TO_CLOB('I''ve been playing that new roguelike - so good.'));
+        SELECT id INTO v_comment4_id FROM (SELECT id FROM comments ORDER BY id DESC FETCH FIRST 1 ROWS ONLY) q;
+        INSERT INTO comments (post_id, parent_id, user_id, content)
+        VALUES (v_post4_id, v_comment4_id, v_user2_id, TO_CLOB('Which one? I''m looking for something new.'));
+        INSERT INTO comments (post_id, parent_id, user_id, content)
+        VALUES (v_post4_id, NULL, v_user3_id, TO_CLOB('Comfort game for me is still the old one.'));
+        INSERT INTO comments (post_id, parent_id, user_id, content)
+        VALUES (v_post4_id, NULL, v_user2_id, TO_CLOB('Just got the platinum. So satisfying.'));
+
+        -- Post 5: 5 comments (1 reply thread + 3 extra)
+        INSERT INTO comments (post_id, parent_id, user_id, content)
+        VALUES (v_post5_id, NULL, v_user2_id, TO_CLOB('Lo-fi jazz works best for me when coding.'));
+        SELECT id INTO v_cid FROM (SELECT id FROM comments ORDER BY id DESC FETCH FIRST 1 ROWS ONLY) q;
+        INSERT INTO comments (post_id, parent_id, user_id, content)
+        VALUES (v_post5_id, v_cid, v_user1_id, TO_CLOB('Same, or sometimes city pop. Helps me focus.'));
+        INSERT INTO comments (post_id, parent_id, user_id, content)
+        VALUES (v_post5_id, NULL, v_user3_id, TO_CLOB('Classical or ambient here.'));
+        INSERT INTO comments (post_id, parent_id, user_id, content)
+        VALUES (v_post5_id, NULL, v_user2_id, TO_CLOB('Any playlist links? Would love to try.'));
+        INSERT INTO comments (post_id, parent_id, user_id, content)
+        VALUES (v_post5_id, NULL, v_user1_id, TO_CLOB('I just put on rain sounds sometimes.'));
+        INSERT INTO comments (post_id, parent_id, user_id, content)
+        VALUES (v_post5_id, NULL, v_user3_id, TO_CLOB('Guilty pleasure: 80s synth.'));
+
+        -- Loop posts (30): 8 comments and replies each, time-staggered off parent post
+        FOR j IN 1..30 LOOP
+            INSERT INTO comments (post_id, parent_id, user_id, content)
+            VALUES (v_post_ids(j), NULL,
+                CASE MOD(j, 3) WHEN 0 THEN v_user1_id WHEN 1 THEN v_user2_id ELSE v_user3_id END,
+                TO_CLOB('Good point. I think so too.'));
+            SELECT id INTO v_cid FROM (SELECT id FROM comments ORDER BY id DESC FETCH FIRST 1 ROWS ONLY) q;
+            INSERT INTO comments (post_id, parent_id, user_id, content)
+            VALUES (v_post_ids(j), v_cid,
+                CASE MOD(j, 3) WHEN 0 THEN v_user2_id WHEN 1 THEN v_user3_id ELSE v_user1_id END,
+                TO_CLOB('Same here, thanks for sharing.'));
+            INSERT INTO comments (post_id, parent_id, user_id, content)
+            VALUES (v_post_ids(j), NULL,
+                CASE MOD(j, 3) WHEN 0 THEN v_user3_id WHEN 1 THEN v_user1_id ELSE v_user2_id END,
+                TO_CLOB('Will try that.'));
+            SELECT id INTO v_cid FROM (SELECT id FROM comments ORDER BY id DESC FETCH FIRST 1 ROWS ONLY) q;
+            INSERT INTO comments (post_id, parent_id, user_id, content)
+            VALUES (v_post_ids(j), v_cid,
+                CASE MOD(j, 3) WHEN 0 THEN v_user1_id WHEN 1 THEN v_user2_id ELSE v_user3_id END,
+                TO_CLOB('Let us know how it goes.'));
+            INSERT INTO comments (post_id, parent_id, user_id, content)
+            VALUES (v_post_ids(j), NULL,
+                CASE MOD(j, 3) WHEN 0 THEN v_user2_id WHEN 1 THEN v_user3_id ELSE v_user1_id END,
+                TO_CLOB('Useful, bookmarked.'));
+            INSERT INTO comments (post_id, parent_id, user_id, content)
+            VALUES (v_post_ids(j), NULL,
+                CASE MOD(j, 3) WHEN 0 THEN v_user3_id WHEN 1 THEN v_user1_id ELSE v_user2_id END,
+                TO_CLOB('Had not thought of that.'));
+            INSERT INTO comments (post_id, parent_id, user_id, content)
+            VALUES (v_post_ids(j), NULL,
+                CASE MOD(j, 3) WHEN 0 THEN v_user1_id WHEN 1 THEN v_user2_id ELSE v_user3_id END,
+                TO_CLOB('Makes sense.'));
+            INSERT INTO comments (post_id, parent_id, user_id, content)
+            VALUES (v_post_ids(j), NULL,
+                CASE MOD(j, 3) WHEN 0 THEN v_user2_id WHEN 1 THEN v_user3_id ELSE v_user1_id END,
+                TO_CLOB('Agreed.'));
+        END LOOP;
+
+        -- Stagger all comment times with realistic ordering:
+        --   * top-level comments: shortly after the post
+        --   * replies: shortly after their parent comment (always later than parent)
+        UPDATE comments c
+        SET created_at = (
+            SELECT CAST(p.created_at + NUMTODSINTERVAL(MOD(ORA_HASH(c.id), 45) + 1, 'MINUTE') AS TIMESTAMP)
+            FROM posts p
+            WHERE p.id = c.post_id
+        )
+        WHERE c.parent_id IS NULL;
+
+        UPDATE comments c
+        SET created_at = (
+            SELECT CAST(parent.created_at + NUMTODSINTERVAL(MOD(ORA_HASH(c.id), 30) + 1, 'MINUTE') AS TIMESTAMP)
+            FROM comments parent
+            WHERE parent.id = c.parent_id
+        )
+        WHERE c.parent_id IS NOT NULL;
+
+        INSERT INTO votes (user_id, post_id, vote_value)
+        VALUES (v_user3_id, v_post1_id, 1);
+
+        INSERT INTO votes (user_id, post_id, vote_value)
+        VALUES (v_user1_id, v_post2_id, -1);
+
+        INSERT INTO polls (post_id, question)
+        VALUES (v_post2_id, 'Which feature should we prioritize next?')
+        RETURNING polls.id INTO v_poll_id;
+
+        INSERT INTO poll_options (poll_id, option_text)
+        VALUES (v_poll_id, 'Better search')
+        RETURNING poll_options.id INTO v_poll_opt1_id;
+
+        INSERT INTO poll_options (poll_id, option_text)
+        VALUES (v_poll_id, 'Tag subscriptions')
+        RETURNING poll_options.id INTO v_poll_opt2_id;
+
+        INSERT INTO poll_votes (poll_id, option_id, user_id)
+        VALUES (v_poll_id, v_poll_opt2_id, v_user3_id);
+
+        UPDATE poll_options
+        SET vote_count = vote_count + 1
+        WHERE id = v_poll_opt2_id;
+
+        INSERT INTO notifications (user_id, actor_id, post_id, comment_id, type, is_read)
+        VALUES (v_user1_id, v_user2_id, v_post1_id, v_comment1_id, 'COMMENT', 0);
+
+        COMMIT;
+    ELSIF v_post_count = 0 AND v_count >= 1 THEN
+        -- DB has users (e.g. Nayem) but no posts: seed posts/comments using first 3 users
+        IF v_count >= 3 THEN
+            SELECT id INTO v_user1_id FROM (SELECT id, ROW_NUMBER() OVER (ORDER BY id) r FROM users) u WHERE u.r = 1;
+            SELECT id INTO v_user2_id FROM (SELECT id, ROW_NUMBER() OVER (ORDER BY id) r FROM users) u WHERE u.r = 2;
+            SELECT id INTO v_user3_id FROM (SELECT id, ROW_NUMBER() OVER (ORDER BY id) r FROM users) u WHERE u.r = 3;
+        ELSIF v_count = 2 THEN
+            SELECT id INTO v_user1_id FROM (SELECT id, ROW_NUMBER() OVER (ORDER BY id) r FROM users) u WHERE u.r = 1;
+            SELECT id INTO v_user2_id FROM (SELECT id, ROW_NUMBER() OVER (ORDER BY id) r FROM users) u WHERE u.r = 2;
+            v_user3_id := v_user1_id;
+        ELSE
+            SELECT MIN(id) INTO v_user1_id FROM users;
+            v_user2_id := v_user1_id;
+            v_user3_id := v_user1_id;
+        END IF;
+
+        MERGE INTO tags t USING (SELECT 'General' AS name FROM dual) s ON (t.name = s.name) WHEN NOT MATCHED THEN INSERT (name) VALUES (s.name);
+        MERGE INTO tags t USING (SELECT 'Technology' AS name FROM dual) s ON (t.name = s.name) WHEN NOT MATCHED THEN INSERT (name) VALUES (s.name);
+        MERGE INTO tags t USING (SELECT 'Gaming' AS name FROM dual) s ON (t.name = s.name) WHEN NOT MATCHED THEN INSERT (name) VALUES (s.name);
+        MERGE INTO tags t USING (SELECT 'Music' AS name FROM dual) s ON (t.name = s.name) WHEN NOT MATCHED THEN INSERT (name) VALUES (s.name);
+        MERGE INTO tags t USING (SELECT 'News' AS name FROM dual) s ON (t.name = s.name) WHEN NOT MATCHED THEN INSERT (name) VALUES (s.name);
+
+        SELECT id INTO v_tag_general_id FROM tags WHERE name = 'General';
+        SELECT id INTO v_tag_tech_id FROM tags WHERE name = 'Technology';
+        SELECT id INTO v_tag_gaming_id FROM tags WHERE name = 'Gaming';
+        SELECT id INTO v_tag_music_id FROM tags WHERE name = 'Music';
+        SELECT id INTO v_tag_news_id FROM tags WHERE name = 'News';
+
+        INSERT INTO posts (user_id, title, content, tag_id, media_url, media_type, created_at)
+        VALUES (v_user1_id, 'Welcome to Galaxy BBS', TO_CLOB('This is a fresh install with sample content. Start a discussion, add a poll, and try voting and commenting.'), v_tag_general_id, NULL, NULL, CAST(SYSTIMESTAMP - INTERVAL '3' DAY AS TIMESTAMP))
+        RETURNING posts.id INTO v_post1_id;
+        INSERT INTO posts (user_id, title, content, tag_id, media_url, media_type, created_at)
+        VALUES (v_user2_id, 'What should we build next?', TO_CLOB('Ideas: better search, richer profiles, tag subscriptions, or real-time notifications. Vote in the poll below.'), v_tag_tech_id, NULL, NULL, CAST(SYSTIMESTAMP - INTERVAL '2' DAY - NUMTODSINTERVAL(6, 'HOUR') AS TIMESTAMP))
+        RETURNING posts.id INTO v_post2_id;
+        INSERT INTO posts (user_id, title, content, tag_id, media_url, media_type, created_at)
+        VALUES (v_user3_id, UNISTR('\306F\3058\3081\307E\3057\3066\FF01Galaxy BBS\3078\3088\3046\3053\305D'), TO_CLOB(UNISTR('\30C6\30B9\30C8\6295\7A3F\3067\3059\3002\6C17\8EFD\306B\30B3\30E1\30F3\30C8\3057\3066\307F\3066\304F\3060\3055\3044\3002\96D1\8AC7\3067\3082OK\3067\3059\3002')), v_tag_general_id, NULL, NULL, CAST(SYSTIMESTAMP - INTERVAL '2' DAY AS TIMESTAMP))
+        RETURNING posts.id INTO v_post3_id;
+        INSERT INTO posts (user_id, title, content, tag_id, media_url, media_type, created_at)
+        VALUES (v_user1_id, UNISTR('\6700\8FD1\30CF\30DE\3063\3066\3044\308B\30B2\30FC\30E0\306F\FF1F'), TO_CLOB(UNISTR('\4ECA\6708\30D7\30EC\30A4\3057\3066\9762\767D\304B\3063\305F\30B2\30FC\30E0\3092\6559\3048\3066\304F\3060\3055\3044\3002\304A\3059\3059\3081\30DD\30A4\30F3\30C8\3082\305C\3072\FF01')), v_tag_gaming_id, NULL, NULL, CAST(SYSTIMESTAMP - INTERVAL '1' DAY AS TIMESTAMP))
+        RETURNING posts.id INTO v_post4_id;
+        INSERT INTO posts (user_id, title, content, tag_id, media_url, media_type, created_at)
+        VALUES (v_user2_id, UNISTR('\4F5C\696D\7528BGM\306E\304A\3059\3059\3081'), TO_CLOB(UNISTR('\96C6\4E2D\3057\305F\3044\3068\304D\306B\8074\304F\97F3\697D\306F\3042\308A\307E\3059\304B\FF1F\30D7\30EC\30A4\30EA\30B9\30C8\3084\30A2\30FC\30C6\30A3\30B9\30C8\540D\3082\6B53\8FCE\3067\3059\3002')), v_tag_music_id, NULL, NULL, CAST(SYSTIMESTAMP - NUMTODSINTERVAL(12, 'HOUR') AS TIMESTAMP))
+        RETURNING posts.id INTO v_post5_id;
+
+        FOR i IN 1..30 LOOP
+            DECLARE
+                v_author_id users.id%TYPE;
+                v_tag_id tags.id%TYPE;
+                v_title VARCHAR2(255);
+                v_body  CLOB;
+                v_new_post_id posts.id%TYPE;
+                v_i_str VARCHAR2(10);
+            BEGIN
+                v_i_str := TO_CHAR(i);
+                v_author_id := CASE MOD(i, 3) WHEN 0 THEN v_user1_id WHEN 1 THEN v_user2_id ELSE v_user3_id END;
+                v_tag_id := CASE MOD(i, 5) WHEN 0 THEN v_tag_general_id WHEN 1 THEN v_tag_tech_id WHEN 2 THEN v_tag_gaming_id WHEN 3 THEN v_tag_music_id ELSE v_tag_news_id END;
+                v_title := CASE v_tag_id
+                    WHEN v_tag_general_id THEN CASE MOD(i, 6) WHEN 0 THEN 'Introduce yourself: where are you from?' WHEN 1 THEN 'Daily check-in: what are you working on today?' WHEN 2 THEN 'Small wins thread' WHEN 3 THEN 'What is one feature you want in this BBS?' WHEN 4 THEN 'Random question: coffee or tea?' ELSE UNISTR('\4ECA\65E5\306E\3072\3068\3053\3068\FF1A\8FD1\6CC1\304D\304B\305B\3066') END
+                    WHEN v_tag_tech_id THEN CASE MOD(i, 6) WHEN 0 THEN 'Oracle tip: indexing and query plans' WHEN 1 THEN 'Debugging JDBC: common gotchas' WHEN 2 THEN 'Frontend idea: better post editor UX' WHEN 3 THEN 'How do you organize tags at scale?' WHEN 4 THEN UNISTR('\30D1\30D5\30A9\30FC\30DE\30F3\30B9\8ABF\6574\306E\30B3\30C4') ELSE 'What should we name the next release?' END
+                    WHEN v_tag_gaming_id THEN CASE MOD(i, 6) WHEN 0 THEN 'Co-op recommendations for this weekend' WHEN 1 THEN 'What is your comfort game?' WHEN 2 THEN 'Best soundtrack in a game?' WHEN 3 THEN UNISTR('\30B2\30FC\30E0\306E\601D\3044\51FA\3092\6559\3048\3066') WHEN 4 THEN 'Controller vs keyboard: what do you prefer?' ELSE 'Share your latest in-game achievement' END
+                    WHEN v_tag_music_id THEN CASE MOD(i, 6) WHEN 0 THEN 'Album of the week: what are you listening to?' WHEN 1 THEN 'Songs that help you focus' WHEN 2 THEN 'Guilty-pleasure tracks' WHEN 3 THEN UNISTR('\304A\3059\3059\3081\306E\4F5C\696D\7528\30D7\30EC\30A4\30EA\30B9\30C8') WHEN 4 THEN 'Live shows: any upcoming concerts?' ELSE 'Share one song and why it matters to you' END
+                    ELSE CASE MOD(i, 6) WHEN 0 THEN 'Weekly roundup: what did you learn this week?' WHEN 1 THEN 'Community update: new features shipping soon' WHEN 2 THEN 'Interesting link dump: tech/gaming/music' WHEN 3 THEN UNISTR('\4ECA\9031\306E\30CB\30E5\30FC\30B9\307E\3068\3081') WHEN 4 THEN 'Site status: performance and reliability notes' ELSE 'What news story are you following right now?' END
+                END;
+                v_body := CASE v_tag_id
+                    WHEN v_tag_general_id THEN TO_CLOB('Quick post to start a conversation. ') || TO_CLOB('Reply with one sentence, or share as much detail as you want. ') || TO_CLOB('If you are new here, welcome! (#') || TO_CLOB(v_i_str) || TO_CLOB(')')
+                    WHEN v_tag_tech_id THEN TO_CLOB('Notes from today''s tinkering: ') || TO_CLOB('1) Keep schema changes idempotent. ') || TO_CLOB('2) Watch out for encoding when loading SQL on Windows. ') || TO_CLOB('3) Add small realistic seed data to test paging. ') || TO_CLOB('Post #') || TO_CLOB(v_i_str) || TO_CLOB('. What would you improve next?')
+                    WHEN v_tag_gaming_id THEN TO_CLOB('Looking for recommendations and hot takes. ') || TO_CLOB('What are you playing lately, and what makes it fun for you? ') || TO_CLOB('Post #') || TO_CLOB(v_i_str) || TO_CLOB('.')
+                    WHEN v_tag_music_id THEN TO_CLOB('Drop a track/artist/playlist and tell us the vibe: lo-fi, jazz, metal, city pop, etc. ') || TO_CLOB('Bonus: what are you doing while listening? ') || TO_CLOB('Post #') || TO_CLOB(v_i_str) || TO_CLOB('.')
+                    ELSE TO_CLOB('Sharing a small update for the community feed. ') || TO_CLOB('If you have links or context, add them in a reply. ') || TO_CLOB('Post #') || TO_CLOB(v_i_str) || TO_CLOB('.')
+                END;
+                INSERT INTO posts (user_id, title, content, tag_id, media_url, media_type, created_at)
+                VALUES (v_author_id, v_title, v_body, v_tag_id, NULL, NULL, CAST(SYSTIMESTAMP AS TIMESTAMP) - NUMTODSINTERVAL(i * 7, 'MINUTE'))
+                RETURNING posts.id INTO v_new_post_id;
+                v_post_ids(i) := v_new_post_id;
+            END;
+        END LOOP;
+
+        INSERT INTO comments (post_id, parent_id, user_id, content) VALUES (v_post1_id, NULL, v_user2_id, TO_CLOB('Nice! I tested posting and it works. Next I want to see tag subscriptions.'));
+        SELECT id INTO v_comment1_id FROM (SELECT id FROM comments ORDER BY id DESC FETCH FIRST 1 ROWS ONLY) q;
+        INSERT INTO comments (post_id, parent_id, user_id, content) VALUES (v_post1_id, v_comment1_id, v_user1_id, TO_CLOB('Agreed - tag subscriptions would be a great next step.'));
+        INSERT INTO comments (post_id, parent_id, user_id, content) VALUES (v_post1_id, NULL, v_user3_id, TO_CLOB('Same here, search by tag would be really useful.'));
+        SELECT id INTO v_comment2_id FROM (SELECT id FROM comments ORDER BY id DESC FETCH FIRST 1 ROWS ONLY) q;
+        INSERT INTO comments (post_id, parent_id, user_id, content) VALUES (v_post1_id, v_comment2_id, v_user2_id, TO_CLOB('We could add that in the next sprint.'));
+        INSERT INTO comments (post_id, parent_id, user_id, content) VALUES (v_post1_id, NULL, v_user1_id, TO_CLOB('Thanks for setting this up. Really helpful.'));
+        INSERT INTO comments (post_id, parent_id, user_id, content) VALUES (v_post1_id, NULL, v_user2_id, TO_CLOB('Anyone tried the search yet?'));
+        INSERT INTO comments (post_id, parent_id, user_id, content) VALUES (v_post2_id, NULL, v_user1_id, TO_CLOB('I voted for better search. Anyone else tried the poll?'));
+        SELECT id INTO v_comment3_id FROM (SELECT id FROM comments ORDER BY id DESC FETCH FIRST 1 ROWS ONLY) q;
+        INSERT INTO comments (post_id, parent_id, user_id, content) VALUES (v_post2_id, v_comment3_id, v_user3_id, TO_CLOB('I went with tag subscriptions. Both would be nice though.'));
+        INSERT INTO comments (post_id, parent_id, user_id, content) VALUES (v_post2_id, NULL, v_user2_id, TO_CLOB('Thanks for the feedback, will pass it to the team.'));
+        INSERT INTO comments (post_id, parent_id, user_id, content) VALUES (v_post2_id, NULL, v_user1_id, TO_CLOB('Real-time notifications would be a game changer.'));
+        INSERT INTO comments (post_id, parent_id, user_id, content) VALUES (v_post2_id, NULL, v_user3_id, TO_CLOB('Poll is a nice touch.'));
+        INSERT INTO comments (post_id, parent_id, user_id, content) VALUES (v_post3_id, NULL, v_user3_id, TO_CLOB(UNISTR('\3053\3053\3089\3078\3088\3046\3053\305D\FF01\30C6\30B9\30C8\6295\7A3F\3044\3044\306D\3002')));
+        SELECT id INTO v_cid FROM (SELECT id FROM comments ORDER BY id DESC FETCH FIRST 1 ROWS ONLY) q;
+        INSERT INTO comments (post_id, parent_id, user_id, content) VALUES (v_post3_id, v_cid, v_user1_id, TO_CLOB('Welcome! Feel free to post anything.'));
+        INSERT INTO comments (post_id, parent_id, user_id, content) VALUES (v_post3_id, NULL, v_user2_id, TO_CLOB('Good to have you here.'));
+        INSERT INTO comments (post_id, parent_id, user_id, content) VALUES (v_post3_id, NULL, v_user3_id, TO_CLOB(UNISTR('\307E\305A\306F\96D1\8AC7\304B\3089\3069\3046\305E\3002')));
+        INSERT INTO comments (post_id, parent_id, user_id, content) VALUES (v_post3_id, NULL, v_user1_id, TO_CLOB('Nice to meet you.'));
+        INSERT INTO comments (post_id, parent_id, user_id, content) VALUES (v_post3_id, NULL, v_user2_id, TO_CLOB('Testing the comment box - works.'));
+        INSERT INTO comments (post_id, parent_id, user_id, content) VALUES (v_post3_id, NULL, v_user3_id, TO_CLOB('Same, just saying hi.'));
+        INSERT INTO comments (post_id, parent_id, user_id, content) VALUES (v_post3_id, NULL, v_user1_id, TO_CLOB('Drop a link or a thought anytime.'));
+        INSERT INTO comments (post_id, parent_id, user_id, content) VALUES (v_post3_id, NULL, v_user2_id, TO_CLOB('Cheers.'));
+        INSERT INTO comments (post_id, parent_id, user_id, content) VALUES (v_post4_id, NULL, v_user1_id, TO_CLOB('I''ve been playing that new roguelike - so good.'));
+        SELECT id INTO v_comment4_id FROM (SELECT id FROM comments ORDER BY id DESC FETCH FIRST 1 ROWS ONLY) q;
+        INSERT INTO comments (post_id, parent_id, user_id, content) VALUES (v_post4_id, v_comment4_id, v_user2_id, TO_CLOB('Which one? I''m looking for something new.'));
+        INSERT INTO comments (post_id, parent_id, user_id, content) VALUES (v_post4_id, NULL, v_user3_id, TO_CLOB('Comfort game for me is still the old one.'));
+        INSERT INTO comments (post_id, parent_id, user_id, content) VALUES (v_post4_id, NULL, v_user2_id, TO_CLOB('Just got the platinum. So satisfying.'));
+        INSERT INTO comments (post_id, parent_id, user_id, content) VALUES (v_post4_id, NULL, v_user1_id, TO_CLOB('Anyone doing co-op this weekend?'));
+        INSERT INTO comments (post_id, parent_id, user_id, content) VALUES (v_post4_id, NULL, v_user3_id, TO_CLOB('Soundtrack of that game is amazing.'));
+        INSERT INTO comments (post_id, parent_id, user_id, content) VALUES (v_post4_id, NULL, v_user2_id, TO_CLOB('Controller all the way.'));
+        INSERT INTO comments (post_id, parent_id, user_id, content) VALUES (v_post4_id, NULL, v_user1_id, TO_CLOB('I need more hours in the day for games.'));
+        INSERT INTO comments (post_id, parent_id, user_id, content) VALUES (v_post5_id, NULL, v_user2_id, TO_CLOB('Lo-fi jazz works best for me when coding.'));
+        SELECT id INTO v_cid FROM (SELECT id FROM comments ORDER BY id DESC FETCH FIRST 1 ROWS ONLY) q;
+        INSERT INTO comments (post_id, parent_id, user_id, content) VALUES (v_post5_id, v_cid, v_user1_id, TO_CLOB('Same, or sometimes city pop. Helps me focus.'));
+        INSERT INTO comments (post_id, parent_id, user_id, content) VALUES (v_post5_id, NULL, v_user3_id, TO_CLOB('Classical or ambient here.'));
+        INSERT INTO comments (post_id, parent_id, user_id, content) VALUES (v_post5_id, NULL, v_user2_id, TO_CLOB('Any playlist links? Would love to try.'));
+        INSERT INTO comments (post_id, parent_id, user_id, content) VALUES (v_post5_id, NULL, v_user1_id, TO_CLOB('I just put on rain sounds sometimes.'));
+        INSERT INTO comments (post_id, parent_id, user_id, content) VALUES (v_post5_id, NULL, v_user3_id, TO_CLOB('Guilty pleasure: 80s synth.'));
+        INSERT INTO comments (post_id, parent_id, user_id, content) VALUES (v_post5_id, NULL, v_user2_id, TO_CLOB('Album of the week?'));
+        INSERT INTO comments (post_id, parent_id, user_id, content) VALUES (v_post5_id, NULL, v_user1_id, TO_CLOB('Thanks for the suggestions.'));
+        FOR j IN 1..30 LOOP
+            INSERT INTO comments (post_id, parent_id, user_id, content) VALUES (v_post_ids(j), NULL, CASE MOD(j, 3) WHEN 0 THEN v_user1_id WHEN 1 THEN v_user2_id ELSE v_user3_id END, TO_CLOB('Good point. I think so too.'));
+            SELECT id INTO v_cid FROM (SELECT id FROM comments ORDER BY id DESC FETCH FIRST 1 ROWS ONLY) q;
+            INSERT INTO comments (post_id, parent_id, user_id, content) VALUES (v_post_ids(j), v_cid, CASE MOD(j, 3) WHEN 0 THEN v_user2_id WHEN 1 THEN v_user3_id ELSE v_user1_id END, TO_CLOB('Same here, thanks for sharing.'));
+            INSERT INTO comments (post_id, parent_id, user_id, content) VALUES (v_post_ids(j), NULL, CASE MOD(j, 3) WHEN 0 THEN v_user3_id WHEN 1 THEN v_user1_id ELSE v_user2_id END, TO_CLOB('Will try that.'));
+            SELECT id INTO v_cid FROM (SELECT id FROM comments ORDER BY id DESC FETCH FIRST 1 ROWS ONLY) q;
+            INSERT INTO comments (post_id, parent_id, user_id, content) VALUES (v_post_ids(j), v_cid, CASE MOD(j, 3) WHEN 0 THEN v_user1_id WHEN 1 THEN v_user2_id ELSE v_user3_id END, TO_CLOB('Let us know how it goes.'));
+            INSERT INTO comments (post_id, parent_id, user_id, content) VALUES (v_post_ids(j), NULL, CASE MOD(j, 3) WHEN 0 THEN v_user2_id WHEN 1 THEN v_user3_id ELSE v_user1_id END, TO_CLOB('Useful, bookmarked.'));
+            INSERT INTO comments (post_id, parent_id, user_id, content) VALUES (v_post_ids(j), NULL, CASE MOD(j, 3) WHEN 0 THEN v_user3_id WHEN 1 THEN v_user1_id ELSE v_user2_id END, TO_CLOB('Had not thought of that.'));
+            INSERT INTO comments (post_id, parent_id, user_id, content) VALUES (v_post_ids(j), NULL, CASE MOD(j, 3) WHEN 0 THEN v_user1_id WHEN 1 THEN v_user2_id ELSE v_user3_id END, TO_CLOB('Makes sense.'));
+            INSERT INTO comments (post_id, parent_id, user_id, content) VALUES (v_post_ids(j), NULL, CASE MOD(j, 3) WHEN 0 THEN v_user2_id WHEN 1 THEN v_user3_id ELSE v_user1_id END, TO_CLOB('Agreed.'));
+        END LOOP;
+
+        -- Stagger all comment times with realistic ordering:
+        --   * top-level comments: shortly after the post
+        --   * replies: shortly after their parent comment (always later than parent)
+        UPDATE comments c
+        SET created_at = (
+            SELECT CAST(p.created_at + NUMTODSINTERVAL(MOD(ORA_HASH(c.id), 45) + 1, 'MINUTE') AS TIMESTAMP)
+            FROM posts p
+            WHERE p.id = c.post_id
+        )
+        WHERE c.parent_id IS NULL;
+
+        UPDATE comments c
+        SET created_at = (
+            SELECT CAST(parent.created_at + NUMTODSINTERVAL(MOD(ORA_HASH(c.id), 30) + 1, 'MINUTE') AS TIMESTAMP)
+            FROM comments parent
+            WHERE parent.id = c.parent_id
+        )
+        WHERE c.parent_id IS NOT NULL;
+
+        COMMIT;
+    END IF;
+END;
+/
 
 -- ---------------------------------------------------------------------------
 -- Migration (for existing DBs - run only the needed parts):

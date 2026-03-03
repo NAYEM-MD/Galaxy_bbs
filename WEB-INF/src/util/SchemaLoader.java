@@ -1,7 +1,9 @@
 package util;
 
 import java.io.BufferedReader;
-import java.io.FileReader;
+import java.nio.charset.StandardCharsets;
+import java.nio.file.Files;
+import java.nio.file.Paths;
 import java.sql.Connection;
 import java.sql.Statement;
 import java.sql.SQLException;
@@ -17,7 +19,7 @@ public class SchemaLoader {
 
         try (Connection conn = DBUtil.getConnection();
              Statement stmt = conn.createStatement();
-             BufferedReader br = new BufferedReader(new FileReader(schemaPath))) {
+             BufferedReader br = Files.newBufferedReader(Paths.get(schemaPath), StandardCharsets.UTF_8)) {
 
             System.out.println("Connected to: " + conn.getMetaData().getURL());
 
@@ -46,7 +48,16 @@ public class SchemaLoader {
                     execute = true;
                 }
                 // Trigger 2: Line ends with ";" AND we are not in a BEGIN block
-                else if (trimmedLine.endsWith(";") && !sql.toString().toUpperCase().trim().startsWith("BEGIN")) {
+                else if (trimmedLine.endsWith(";")) {
+                    String start = sql.toString().trim().toUpperCase();
+                    boolean isPlSql =
+                            start.startsWith("BEGIN") ||
+                            start.startsWith("DECLARE") ||
+                            start.startsWith("CREATE OR REPLACE");
+
+                    if (isPlSql) {
+                        continue;
+                    }
                     // Remove the semicolon for JDBC execution
                     sql.setLength(sql.length() - 1); // Remove trailing newline (added above)
                     // We need to remove the semicolon from the buffer.

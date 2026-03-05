@@ -154,8 +154,11 @@ public class UserDAO extends BaseDAO {
      */
     public boolean deleteUser(int userId, Connection conn) throws SQLException {
         String delNotifications = "DELETE FROM notifications WHERE user_id = ? OR actor_id = ?";
-        String delComments = "DELETE FROM comments WHERE user_id = ?";
-        String delVotes = "DELETE FROM votes WHERE user_id = ?";
+        String delCommentsByUser = "DELETE FROM comments WHERE user_id = ?";
+        String delCommentsOnUserPosts = "DELETE FROM comments WHERE post_id IN (SELECT id FROM posts WHERE user_id = ?)";
+        String delVotesByUser = "DELETE FROM votes WHERE user_id = ?";
+        String delVotesOnUserPosts = "DELETE FROM votes WHERE post_id IN (SELECT id FROM posts WHERE user_id = ?)";
+        String delPollVotes = "DELETE FROM poll_votes WHERE user_id = ?";
         String delPosts = "DELETE FROM posts WHERE user_id = ?";
         String delUser = "DELETE FROM users WHERE id = ?";
         try (PreparedStatement ps = conn.prepareStatement(delNotifications)) {
@@ -163,11 +166,23 @@ public class UserDAO extends BaseDAO {
             ps.setInt(2, userId);
             ps.executeUpdate();
         }
-        try (PreparedStatement ps = conn.prepareStatement(delComments)) {
+        try (PreparedStatement ps = conn.prepareStatement(delCommentsByUser)) {
             ps.setInt(1, userId);
             ps.executeUpdate();
         }
-        try (PreparedStatement ps = conn.prepareStatement(delVotes)) {
+        try (PreparedStatement ps = conn.prepareStatement(delCommentsOnUserPosts)) {
+            ps.setInt(1, userId);
+            ps.executeUpdate();
+        }
+        try (PreparedStatement ps = conn.prepareStatement(delVotesByUser)) {
+            ps.setInt(1, userId);
+            ps.executeUpdate();
+        }
+        try (PreparedStatement ps = conn.prepareStatement(delVotesOnUserPosts)) {
+            ps.setInt(1, userId);
+            ps.executeUpdate();
+        }
+        try (PreparedStatement ps = conn.prepareStatement(delPollVotes)) {
             ps.setInt(1, userId);
             ps.executeUpdate();
         }
